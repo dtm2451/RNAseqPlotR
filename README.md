@@ -1,6 +1,10 @@
 # RNAseqPlotR
 **A set of color blind friendly functions built for analysis and visualization of single cell and bulk RNA-sequencing data**
 
+![example1](DBDimPlot2.jpeg)
+![example2](DBBarPlot1.jpeg)
+![example3](DBPlot2.jpeg)
+
 *For a tutorial on how to use these functions, see [RNAseqPlotR_Vignette.md](https://github.com/dtm2451/RNAseqPlotR/blob/master/RNAseqPlotR_Vignette.md)*
 
 It includes various helper and plotting functions for working with RNAseq data. I parsonally use the helper functions (especially `meta()` and `get.metas()`) constantly, but I imagine that the main draw for others will be the plotting functions.
