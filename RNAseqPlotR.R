@@ -13,12 +13,14 @@ library(colorspace, quietly = T)
 ################################ DBDimPlot ##################################
 DBDimPlot <- function(var="ident", object = DEFAULT, reduction.use = NA, dim.1 = 1, dim.2 = 2, theme = NA,
                       size=1, shape=16, shapes=c(16,15,17,23,25,8),
-                      legend.size = 5, shape.legend.size = 5, legend.title = NULL, shape.legend.title = NULL,
+                      legend.size = 5, legend.title = NULL,
+                      shape.legend.size = 5, shape.legend.title = NULL,
                       main = NULL, sub = NULL, xlab="make", ylab ="make", auto.title = T,
                       cells.use = NULL, show.others=TRUE, ellipse = F,
                       do.label = F, label.size = 5, highlight.labels = T, label.by = NULL,
                       rename.groups = NA,
-                      low = "#F0E442", high = "#0072B2", range = NULL, color.panel = MYcolors, colors = 1:8){
+                      low = "#F0E442", high = "#0072B2", range = NULL,
+                      color.panel = MYcolors, colors = 1:length(color.panel)){
   #Makes a plot where colored dots are overlayed onto the dim.reduction plot of choice.
   #
   #object                 the Seurat or RNAseq object
@@ -48,7 +50,7 @@ DBDimPlot <- function(var="ident", object = DEFAULT, reduction.use = NA, dim.1 =
   #label.size             Size of the the labels text
   #highlight.labels       Whether the labels should have a box behind them
   #legend.size            The Size to increase the plotting of legend shapes to (for discrete variable plotting)
-  #legend.label           The title for the legend.  Set to NULL if not wanted.
+  #legend.title           The title for the legend.  Set to NULL if not wanted.
   #rename.groups          new names for the identities of var.  Change to NULL to remove labeling altogether.
   
   #Establish Defaults
@@ -248,7 +250,7 @@ DBDimPlot <- function(var="ident", object = DEFAULT, reduction.use = NA, dim.1 =
 
 DBPlot <- function(var, object = DEFAULT, main = NULL, sub = NULL, group.by,
                    color.by, shape.by = "", cells.use = NULL, plots = c("jitter","vlnplot"),
-                   color.panel = MYcolors, colors = c(1:8),
+                   color.panel = MYcolors, colors = c(1:length(color.panel)),
                    ylab = "make", y.breaks = NULL, range = NULL,
                    xlab = NULL, labels = NULL, rotate.labels = TRUE,
                    hline=NULL, hline.linetype = "dashed", hline.color = "black",
@@ -436,7 +438,7 @@ DBPlot <- function(var, object = DEFAULT, main = NULL, sub = NULL, group.by,
 DBBarPlot <- function(var="ident", object = DEFAULT, group.by = "Sample",
                       cells.use = NULL,
                       color.panel = MYcolors, colors = c(1:length(color.panel)),
-                      xlab = NULL, ylab = NA, x.labels = NA, rotate.labels = TRUE,
+                      xlab = NULL, ylab = "make", x.labels = NA, rotate.labels = TRUE,
                       y.labels = c(0,0.5,1), label.by = NA,
                       main = NULL, sub = NULL, rename.groups = NA,
                       legend.title = NULL,
@@ -459,7 +461,7 @@ DBBarPlot <- function(var="ident", object = DEFAULT, group.by = "Sample",
   #label.by               "metaadata" to use for renaming the groupings.  If there are repeats, "-#" will be added.
   #main/sub               main = plot title, sub = plot subtitle.
   #rename.groups          new names for the identities of var.  Change to NULL to remove labeling altogether.
-  #legend.label           Title for the legend
+  #legend.title           Title for the legend
   #reorder.x              sequence of numbers from 1:length(meta.levels(group.by)) for providing a new order
                           # for the samples.  Default = alphabetical then numerical.
   
@@ -530,14 +532,11 @@ DBBarPlot <- function(var="ident", object = DEFAULT, group.by = "Sample",
   p <- ggplot(data=dat, aes(x = grouping)) +
     #Add the bars.
     geom_col(aes(y=y.percents, fill = y.ident))
-    #Populate ylab title if not provided / left as NA.  If given as NULL,
-    # this will be used and will later remove the label.
-    if (is.na(ylab) & is.meta(var,object)){
-      ylab <- ifelse(is.null(ylab), NULL, paste0("Percent of ", 
-                                                 ifelse(classof(object)=="seurat",
-                                                        "cells\ncalled as ",
-                                                        "reads\ncalled as"),
-                                                 var))
+    #Populate ylab if left as "make".
+    if(ylab == "make"){ ylab <- paste0("Percent of ",
+                                       ifelse(classof(object)=="seurat",
+                                              "cells",
+                                              "samples"))
     }
     #Add the y-axis labels and name to the plot
     p <- p + scale_y_continuous(breaks= y.labels,
@@ -694,15 +693,6 @@ classof <- function (object = DEFAULT){
   class(eval(expr = parse(text = paste0(object)))) 
 }
 
-#### rankedBarcodes: recreates the 10X cells vs UMI plot ###########
-# Not as pretty, but it gets the job done if you need it.
-rankedBarcodes <- function(object){
-  #Takes in a Seurat object and spits out a cellranger-like rankedBarcodes plot for all the cells in the object
-  UMI.counts <- object@meta.data$nUMI[order(object@meta.data$nUMI, decreasing=TRUE)]
-  Barcodes <- 1:length(UMI.counts)
-  plot(log10(Barcodes),log10(UMI.counts), type="s")
-}
-
 ############################################################################################################
 
 #### COLOR PANEL MODIFICATIONS BLOCK ####
@@ -711,16 +701,25 @@ rankedBarcodes <- function(object){
 
 #### Darken: For darkening colors ####
 Darken <- function(colors, percent.change = 0.25, relative = T){
-  # Darkens the given color(s) by a set amount.
+  # Darkens the given color palette by a set amount.
   #Utilizes lighten and darken functions of the colorspace package to alter colors
   darken(colors, amount = percent.change, space = "HLS", fixup = TRUE, method = ifelse(relative,"relative","absolute"))
 }
 
-#### Lighten: For lightening colors ####
+#### Darken: For darkening colors ####
 Lighten <- function(colors, percent.change = 0.25, relative = T){
-  # Lightens the given color(s) by a set amount.
+  # Lightens the given color palette by a set amount.
   #Utilizes lighten and darken functions of the colorspace package to alter colors
   lighten(colors, amount = percent.change, space = "HLS", fixup = TRUE, method = ifelse(relative,"relative","absolute"))
+}
+
+#### rankedBarcodes: recreates the 10X cells vs UMI plot ###########
+# Not as pretty, but it gets the job done if you need it.
+rankedBarcodes <- function(object){
+  #Takes in a Seurat object and spits out a cellranger-like rankedBarcodes plot for all the cells in the object
+  UMI.counts <- object@meta.data$nUMI[order(object@meta.data$nUMI, decreasing=TRUE)]
+  Barcodes <- 1:length(UMI.counts)
+  plot(log10(Barcodes),log10(UMI.counts), type="s")
 }
 
 ################################################################################################################
@@ -915,4 +914,4 @@ PCAcalc <- function(object = DEFAULT,
   object
 }
 
-MYcolors <- c(MYcolors, Darken(MYcolors, 0.25), Lighten(MYcolors,0.1))
+MYcolors <- c(MYcolors, Darken(MYcolors, 0.25), Lighten(MYcolors,0.25))
