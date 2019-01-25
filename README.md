@@ -1,7 +1,7 @@
 # RNAseqPlotR
 A set of color blind friendly functions built for analysis and visualization of single cell and bulk RNA-sequencing data
 
-**For a tutorial on how to use these functions, see RNAseqPlotR_Vignette.html**
+**For a tutorial on how to use these functions, see [RNAseqPlotR_Vignette.html](https://github.com/dtm2451/RNAseqPlotR/blob/master/RNAseqPlotR_Vignette.html)**
 
 It includes various helper and plotting functions for working with RNAseq data. I parsonally use the helper functions (especially `meta()` and `get.metas()`) constantly, but I imagine that the main draw for others will be the plotting functions.
 
@@ -19,7 +19,7 @@ Copy code in RNAseqPlotR.R into a script with that name.  Then, use this code to
 source("LOCATION/RNAseqPlotR.R")
 ```
 
-For a tutorial on how to use these functions, see RNAseqPlotR_Vignette.html
+For a tutorial on how to use these functions, see [RNAseqPlotR_Vignette.html](https://github.com/dtm2451/RNAseqPlotR/blob/master/RNAseqPlotR_Vignette.html)
 
 ## Plotting Functions
 
