@@ -5,7 +5,7 @@
 ![example2](DBBarPlot1.jpeg)
 ![example3](DBPlot2.jpeg)
 
-*For a tutorial on how to use these functions, see [RNAseqPlotR_Vignette.md](https://github.com/dtm2451/RNAseqPlotR/blob/master/RNAseqPlotR_Vignette.md)*
+*For a tutorial on how to use these functions, see [RNAseqPlotR_Vignette.md](RNAseqPlotR_Vignette.md)*
 
 Package includes various helper and plotting functions for working with RNAseq data analyzed in other packages; Seurat for single-cell RNAseq data, DESeq/edgeR for bulk RNAseq data. I personally use the helper functions (especially `meta()` and `get.metas()`) constantly, but I imagine that the main draw for others will be the plotting functions.
 
@@ -13,7 +13,7 @@ All plotting functions spit out default-themed plots upon minimal coding input f
 
 I built the functions while analyzing single cell RNAseq data with Seurat, but since then, I have started to add functionality for handling bulk RNAseq data as well.  Currently, the bulk capabilities only extend to DESeq-analyzed bulk data, but I plan to add functionality for edgeR in the near future.
 
-NOTE: These functions are currently in a functional though not yet prime-time state.  They will eventually be released as a complete package withh all typical function documentation.  Currently, documentation is in the form of header comments in the actual [function code](RNAsePlotR.R).  Hopefully, with those and with this tutorial, all the workings of these functions can be figured out!  If you have questions about how to do something, or would like to suggest new features, please message me!
+NOTE: These functions are currently in a functional though not yet prime-time state.  They will eventually be released as a complete package withh all typical function documentation.  Currently, documentation is in the form of header comments in the actual [function code](RNAseqPlotR.R).  Hopefully, with those and with this tutorial, all the workings of these functions can be figured out!  If you have questions about how to do something, or would like to suggest new features, please message me!
 
 #### Color blindness friendliness:
 
@@ -27,7 +27,7 @@ Save the code in RNAseqPlotR.R as an Rscript with the same name into your prefer
 source("LOCATION/RNAseqPlotR.R")
 ```
 
-For a tutorial on how to use these functions, see [RNAseqPlotR_Vignette.md](https://github.com/dtm2451/RNAseqPlotR/blob/master/RNAseqPlotR_Vignette.md)
+For a tutorial on how to use these functions, see [RNAseqPlotR_Vignette.md](RNAseqPlotR_Vignette.md)
 
 ## Plotting Functions
 
