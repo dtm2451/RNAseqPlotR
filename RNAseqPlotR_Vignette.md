@@ -30,11 +30,6 @@ source("~/Desktop/RNAseqPlotR.R")
 
 Now, load in your Seurat dataset, and you'll be ready to get going!  If you are working with bulk RNAseq data, there are extra steps given in a later section.  I will eventually build an entire tutorial for this type of data.
 
-```
-#Load in Seurat object used for making all example figures in this vignette:
-HSPCs <- readRDS("~/Box Sync/Layering Analysis/10X/Savespot1901/HSPCs_cca-alinged.rds")
-```
-
 ### Basic use
 
 The basic use of most functions, including all of the plotting functions is `funtion(var, object, other.inputs)` where var is the target variable (often this will be the "name" of a metadata or gene) and object is the Seurat-object target.  One of the most useful other inputs is probably cells.use.
@@ -54,14 +49,15 @@ Other Required Inputs, **`group.by` and `color.by`** - DBBarPlot(var, object, gr
 #### Basic use examples
 
 ```
-#DBDimPlot
+#DBDimPlot: Makes a DBDimPlot showing a discrete variable, age, of all cells.
 DBDimPlot("age", "HSPCs")
 
-#DBPlot
-DBPlot("percent.mito", "HSPCs", group.by = "Sample", color.by = "age")
+#DBPlot: Makes a DBPlot showing the percent.mito (the percent of reads that were mitochondrial)
+# of each sample with coloring based on age
+DBPlot("JUN", "HSPCs", group.by = "Sample", color.by = "age")
 
-#DBBarPlot
-DBBarPlot("new.HSPCcelltype", "HSPCs", group.by = "Sample")
+#DBBarPlot: Makes a DBBarPlot showing the clustering percentages broken down by Sample
+DBBarPlot("ident", "HSPCs", group.by = "Sample")
 
 #Set DEFAULT
 DEFAULT <- "HSPCs" #After setting this, the object slot can be left out entirely!
@@ -70,11 +66,17 @@ DEFAULT <- "HSPCs" #After setting this, the object slot can be left out entirely
 DBDimPlot("age")
 
 #same for DBPlot
-DBPlot("percent.mito", group.by = "Sample", color.by = "age")
+DBPlot("JUN", group.by = "Sample", color.by = "age")
 
 #same for DBBarPlot
-DBBarPlot("new.HSPCcelltype", group.by = "Sample")
+DBBarPlot("ident", group.by = "Sample")
 ```
+
+![DBDimPlot1](DBDimPlot1.jpeg)
+![DBPlot1](DBPlot1.jpeg)
+![DBBarPlot1](DBBarPlot1.jpeg)
+
+
 
 ### Intuitive inputs
 
@@ -93,7 +95,7 @@ DBDimPlot("CD34") # Default: main plot will be set to "'var' Expression". y-axis
 A couple examples before jumping in, to showcase the flexible functionality:
 
 ```
-DBDimPlot("new.HSPCcelltype",
+DBDimPlot("ident",
           main = "Easily plot where cells lie in PC/tsne/cca-space, and set all labels",
           sub = "Easily set titles and all labels too!",
           xlab = "PC1 (50%) (actually tSNE1, but this is an example!)",
@@ -101,36 +103,45 @@ DBDimPlot("new.HSPCcelltype",
           legend.title = "Celltype",
           do.label = T,
           ellipse = T,
-          cells.use = meta("new.HSPCcelltype")!="0", colors = c(2:8))
+          cells.use = meta("ident")!="0",
+          colors = c(2:8))
 DBPlot("Score",
        group.by = "Sample",
        color.by = "age",
+       shape.by = "Sex",
        plots = c("vlnplot","jitter","boxplot"),
-       cells.use = meta("new.HSPCcelltype")=="GMP",
-       labels = c("Adult-1", "Adult-2", "Fetal-1", "Fetal-2", "Fetal-3", "Cord-1", "Cord-2"),
-       jitter.size = 0.5,
+       cells.use = meta("ident")=="2",
+       labels = c("1", "2", "1", "2", "3", "1", "2"),
+       rotate.labels = F,
+       jitter.size = 1.5,
        boxplot.color = "white",
        boxplot.fill = F,
        y.breaks = c(-70, -35, 0, 35, 70),
        hline = c(12, -20),
        jitter.width = 0.35,
+       main = "Scoring of cells in ident-2",
        sub = "MUCH MORE FLEXIBLE then Seurat's native DimPlot and VlnPlot"
 )
 ```
 
-(Images to come soon.)
+![DBDimPlot2](DBDimPlot2.jpeg)
+![DBPlot2](DBPlot2.jpeg)
 
 ### Key advanced inputs:
 
-**`cells.use`, `show.others`** = in DBPlot (cells.use only) and DBDimPlot (both), for showing or highlighting only certain cells. `cells.use` input is used for either showing/highlighting only certain cells with DBPlot and DBDimPlot. For example, only HSCs below.  In DBDimPlot, non-target cells will still be shown, by default, as light grey dots. `show.others = F` is an optional additional input for DBDimPlot which can be used to turn off the inclusion of other cells. Usage = For cells.use, provide either the list of cell.names subsetted to just the ones you want (the same way it is used in Seurat), OR provide a logical that says whether each cell should be included (a.k.a. `THIS` in: `object@cell.names[THIS]`). For show.others, use either TRUE or FALSE.
+**`cells.use`, `show.others`** = in DBPlot (cells.use only) and DBDimPlot (both), for showing or highlighting only certain cells. `cells.use` input is used for either showing/highlighting only certain cells with DBPlot and DBDimPlot. For example, only 3s below.  In DBDimPlot, non-target cells will still be shown, by default, as light grey dots. `show.others = F` is an optional additional input for DBDimPlot which can be used to turn off the inclusion of other cells. Usage = For cells.use, provide either the list of cell.names subsetted to just the ones you want (the same way it is used in Seurat), OR provide a logical that says whether each cell should be included (a.k.a. `THIS` in: `object@cell.names[THIS]`). For show.others, use either TRUE or FALSE.
 
 ```
 # Using the list of cell names method:
-DBPlot("Score", group.by = "Sample", color.by = "age", cells.use = HSPCs@cell.names[meta("new.HSPCcelltype")=="HSC"])
+DBPlot("Score", group.by = "Sample", color.by = "age",
+       cells.use = HSPCs@cell.names[meta("ident")=="3"])
 # Using the logical method:
-DBDimPlot("age", cells.use = meta("new.HSPCcelltype")=="HSC")
+DBDimPlot("age",
+          cells.use = meta("ident")=="3")
 # Removing the gray 'others' dots.
-DBDimPlot("age", cells.use = meta("new.HSPCcelltype")=="HSC", show.others = F)
+DBDimPlot("age",
+          cells.use = meta("ident")=="3",
+          show.others = F)
 ```
 
 **`do.label`, `label.size`, `highlight.labels`** = in DBDimPlot, for labeling clusters / ages / conditions / any discrete classifier of the cells in the dataset.  Setting `do.label = TRUE` turns on labeling. `label.size = 10` adjusts the label size. `highlight.labels = TRUE` controls whether there will be a white box around the labels.  Default are label.size = 5, and highlight.labels = TRUE
@@ -139,25 +150,25 @@ DBDimPlot("age", cells.use = meta("new.HSPCcelltype")=="HSC", show.others = F)
 
 ```
 # Using the default labeling
-DBDimPlot("new.HSPCcelltype", do.label = T)
+DBDimPlot("ident", do.label = T)
 # Adding in ellipses
-DBDimPlot("new.HSPCcelltype", do.label = T, ellipse = T)
+DBDimPlot("ident", do.label = T, ellipse = T)
 # Adjusting the label size and removing the highlight/background
-DBDimPlot("new.HSPCcelltype", do.label = T, label.size = 10, highlight.labels = F)
+DBDimPlot("ident", do.label = T, label.size = 10, highlight.labels = F)
 ```
 
 **`reduction.use`, `dim.1`, `dim.2`** = in DBDimPlot, for setting which dimensional reduction space and dimensions to use. Usage = For reduction.use, provide the all lowercase, quoted, key for the target dr space of the object (`object@dr$"THIS"`), a.k.a. "tsne", "pca", "ica", "cca", "cca.aligned". For dim.1 and dim.2 provide the component #, like 1 and 2 for PC1 and PC2.  dim.1 sets the x-axis and dim.2 sets the y-axis, just like in Seurat's DimPlot functions.
 
 ```
 # Switching to cca instead of the default, tsne.
-DBDimPlot("new.HSPCcelltype", reduction.use = "cca.aligned", dim.1 = 1, dim.2 = 2)
+DBDimPlot("ident", reduction.use = "cca.aligned", dim.1 = 1, dim.2 = 2)
 ```
 
 **`main`, `sub`, `xlab`, `ylab`, `legend.title`** = These set the titles for the plot, `main` and `sub`, for the axes, `xlab` and `ylab`, and `legend.title` for the legend.  Except for `legend.title` which is currently only used in DBDimPlot, all others work for all my plotting functions.
 
 ```
 # Adjusting all titles
-DBDimPlot("new.HSPCcelltype", reduction.use = "cca.aligned", dim.1 = 1, dim.2 = 2,
+DBDimPlot("ident", reduction.use = "cca.aligned", dim.1 = 1, dim.2 = 2,
           main = "Where cells lie in CCA-space",
           sub = "After CCA-alignment",
           xlab = "CC1",
@@ -169,32 +180,37 @@ DBDimPlot("new.HSPCcelltype", reduction.use = "cca.aligned", dim.1 = 1, dim.2 = 
 
 ```
 # This default plotting code...
-DBPlot("Score", group.by = "Sample", color.by = "age", cells.use = meta("new.HSPCcelltype")=="HSC")
+DBPlot("Score", group.by = "Sample", color.by = "age", cells.use = meta("ident")=="3")
 # ...will produce the same plot as:  (jitter plot behind a violin plot)
-DBPlot("Score", group.by = "Sample", color.by = "age", cells.use = meta("new.HSPCcelltype")=="HSC",
+DBPlot("Score", group.by = "Sample", color.by = "age", cells.use = meta("ident")=="3",
        plots = c("jitter", "vlnplot"))
-# Changing the order and adding a boxplot in the middle: (violin plot in the back, boxplot on top, jitter on top of that) 
-DBPlot("Score", group.by = "Sample", color.by = "age", cells.use = meta("new.HSPCcelltype")=="HSC",
+# Changing the order and adding a boxplot in the middle: (violin plot in the back,
+#  boxplot on top of that, jitter on top) 
+DBPlot("Score", group.by = "Sample", color.by = "age", cells.use = meta("ident")=="3",
        plots = c("vlnplot", "boxplot", "jitter"))
 ```
 
-**`color.panel`, `colors`** for setting the colors to be used. Default = a colorblind friendly colorset with 8 colors! Credit to Wong, B. “Points of view: Color blindness” Nature Methods, 2011.  color.panel sets the color options, and colors can be used to adjust which colors are used for what data.  Usage: (plotting.colors <- c("#E69F00", "#56B4E9", "#009E73", "#F0E442", "#0072B2", "#D55E00", "#CC79A7", "#000000") which is run when the file is sourced); `color.panel = MYcolors`. This is the default. colors = c(1:8) by default or c(8,2:7) if black is wanted for the first grouping instead 
+**`color.panel`, `colors`** for setting the colors to be used. Default = a colorblind friendly colorset, stored to `MYcolors` upon source'ing, with 8 main colors that I then darken and lighten to give 24 default colors total.  Credit for the initial 8 goes to Wong, B. “Points of view: Color blindness” Nature Methods, 2011.  `color.panel` sets the color options, and `colors` can be used to adjust which colors are used for what data.  Usage: `color.panel = c("black","white","gray","blue")`. The default for all plotting functions is `color.panel = MYcolors`. `colors = c(8,2:7)` if the 8th color in the color.panel is actually wanted for the first grouping. The default for all plotting functions is `colors = c(1:length(color.panel))`.
 
 ```
-#Default of DBDimPlot("new.HSPCcelltype") is the same as
-DBDimPlot("new.HSPCcelltype", color.panel = MYcolors, colors = c(1:8))
-#And with black (slot 8) first instead...
-DBDimPlot("new.HSPCcelltype", colors = c(8,2:7))
+#Default of DBDimPlot("ident") is the same as
+DBDimPlot("ident", color.panel = MYcolors, colors = c(1:8))
+#But if I wanted to change the 0s to black (slot 8) I use 8,2,3,4,5,6,7 instead...
+DBDimPlot("ident", colors = c(8,2:7))
 ```
 
 **`shape` / `shape.by`, `shapes` / `jitter.shapes`** = in DBDimPlot and DBPlot respectively. *shape.by* in DBPlot acts exactly like `color.by` except that instead of setting the fill colors for `plots = "vlnplot"` or `"boxplot"`, it sets the shaping used for `plot = "jitter"`.  Usage = provide the "quoted" name of a metadata that has the discrete options you are looking to have shapes be set by.  *shape* works very similarly in DBDimPlot except that it changes the shapes of the dots in the dimplot AND in that it can additionally be used to change the shape of all dots by simply setting it to a different number corresponding to a ggplot shape from the defult 16 (= filled circles). Usage = `shape = 16` OR `shape = "meta-name"`. *shapes* and *jitter.shapes* provides the set of shapes that should be used. For a list of possibilities, see here <https://www.rstudio.com/wp-content/uploads/2015/03/ggplot2-cheatsheet.pdf>. Default: `shapes=c(16,15,17,23,25,8)` and same for `jitter.shapes=c(16,15,17,23,25,8)`.
 
 ```
-DBPlot("Score", group.by = "Sample", color.by = "age", cells.use = (meta("new.HSPCcelltype")=="MEP" | meta("new.HSPCcelltype")=="GMP"), plots = c("vlnplot", "jitter"),
-       shape.by = "new.HSPCcelltype")
+DBPlot("Score", group.by = "Sample", color.by = "age",
+       cells.use = (meta("ident")=="4" | meta("ident")=="2"),
+       plots = c("vlnplot", "jitter"),
+       shape.by = "ident")
 # To reverse the shapes, I change the order of jitter.shapes (default was c(16,15,17,23,25,8))
-DBPlot("Score", group.by = "Sample", color.by = "age", cells.use = (meta("new.HSPCcelltype")=="MEP" | meta("new.HSPCcelltype")=="GMP"), plots = c("vlnplot", "jitter"),
-       shape.by = "new.HSPCcelltype",
+DBPlot("Score", group.by = "Sample", color.by = "age",
+       cells.use = (meta("ident")=="4" | meta("ident")=="2"),
+       plots = c("vlnplot", "jitter"),
+       shape.by = "ident",
        jitter.shapes = c(15,16))
 ```
 
@@ -202,12 +218,12 @@ DBPlot("Score", group.by = "Sample", color.by = "age", cells.use = (meta("new.HS
 
 ```
 # Adjusting the range of DBPlot or DBBarPlot
-DBPlot("Score", group.by = "Sample", color.by = "age", cells.use = meta("new.HSPCcelltype")=="HSC",
+DBPlot("Score", group.by = "Sample", color.by = "age", cells.use = meta("ident")=="3",
        plots = c("vlnplot", "boxplot", "jitter"),
        range = c(-40,50))
 
 # Adjusting the range and colors of a DBDimPloot
-DBDimPlot("Score", cells.use = meta("new.HSPCcelltype")=="HSC",
+DBDimPlot("Score", cells.use = meta("ident")=="3",
           range = c(-20,10), low = "grey", high = "red")
 ```
 
@@ -224,9 +240,9 @@ prettyplot.theme <- theme(text = element_text(size = 14, color="black"),
                     legend.text = element_text(colour="black", size = 12, face="plain"),
                     plot.background = element_rect(fill = "transparent",colour = NA))
 #Make a plot with this theme
-DBDimPlot("new.HSPCcelltype", theme = prettyplot.theme)
+DBDimPlot("ident", theme = prettyplot.theme)
 #Make a plot by calling theme inside the Plotting function call:
-DBDimPlot("new.HSPCcelltype",
+DBDimPlot("ident",
           theme = theme(text = element_text(size = 14, color="black"),
                         panel.background = element_rect(fill = "transparent",colour = NA),
                         panel.grid.minor = element_blank(),
@@ -259,10 +275,14 @@ DBDimPlot("new.HSPCcelltype",
 An example using many of these:
 ```
 #Before
-DBPlot("Score", group.by = "Sample", color.by = "age", plots = c("vlnplot","jitter","boxplot"), cells.use = meta("new.HSPCcelltype")=="GMP")
+DBPlot("Score", group.by = "Sample", color.by = "age",
+       plots = c("vlnplot","jitter","boxplot"),
+       cells.use = meta("ident")=="2")
 #After
-DBPlot("Score", group.by = "Sample", color.by = "age", plots = c("vlnplot","jitter","boxplot"), cells.use = meta("new.HSPCcelltype")=="GMP",
-       labels = c("Adult-1", "Adult-2", "Fetal-1", "Fetal-2", "Fetal-3", "Cord-1", "Cord-2"),
+DBPlot("Score", group.by = "Sample", color.by = "age",
+       plots = c("vlnplot","jitter","boxplot"),
+       cells.use = meta("ident")=="2",
+       labels = c("sample-1", "sample-2", "sample-3", "sample-4", "sample-5", "sample-6", " sample-7"),
        jitter.size = 0.5,
        boxplot.color = "white",
        boxplot.fill = F,
@@ -272,7 +292,8 @@ DBPlot("Score", group.by = "Sample", color.by = "age", plots = c("vlnplot","jitt
 )
 ```
 
-(Image to come soon.)
+![DBPlot3](DBPlot3.jpeg)
+![DBPlot4](DBPlot4.jpeg)
 
 ## Helper functions
 
