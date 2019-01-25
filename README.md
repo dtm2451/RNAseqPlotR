@@ -11,6 +11,10 @@ I built the functions while analyzing single cell RNAseq data with Seurat, but s
 
 NOTE: These functions are currently in a functional though not yet prime-time state.  My goal is that they will eventually be released as part of a package that will have all the typical function documentation.  Currently, documentation is in the form of header comments in the function code.  Hopefully, with those and with this tutorial, all the workings of these functions can be figured out!  If you have questions about how to do something, or would like to suggest new features, please message me!
 
+## Color blindness friendliness:
+
+The default colors of this package are meant to be color blind friendly.  To make it so, I used the suggested colors from this source: [Wong B, "Points of view: Color blindness." Nature Methods, 2011.](https://www.nature.com/articles/nmeth.1618)  Currently, when you source my package into your workspace, a variable called MYcolors is created that has the 8 colors refenced in the Points of View paper stored inside.  Lighter and darker versions of these same colors are then appended to make it a 24 color vector.  All plotting functions use these colors by default.
+
 ## To use:
 
 Copy code in RNAseqPlotR.R into a script with that name.  Then, use this code to load the functions into your workspace:
