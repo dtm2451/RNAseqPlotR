@@ -75,8 +75,8 @@ DBPlot("percent.mito", group.by = "Sample", color.by = "age")
 #same for DBBarPlot
 DBBarPlot("new.HSPCcelltype", group.by = "Sample")
 ```
-[[https://github.com/dtm2451/RNAseqPlotR/blob/master/DBDimPlot1.jpeg|alt=basicDBDimPlot]]
-[[https://github.com/dtm2451/RNAseqPlotR/blob/master/DBPlot1.jpeg|alt=basicDBPlot]]
+(https://github.com/dtm2451/RNAseqPlotR/blob/master/DBDimPlot1.jpeg|alt=basicDBDimPlot)
+![1](https://github.com/dtm2451/RNAseqPlotR/blob/master/DBPlot1.jpeg|alt=basicDBPlot)
 [[https://github.com/dtm2451/RNAseqPlotR/blob/master/DBBarPlot1.jpeg|alt=basicDBBarPlot]]
 
 ### Intuitive inputs
