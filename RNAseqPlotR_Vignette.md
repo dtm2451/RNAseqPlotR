@@ -278,6 +278,11 @@ An example using many of these:
 DBPlot("Score", group.by = "Sample", color.by = "age",
        plots = c("vlnplot","jitter","boxplot"),
        cells.use = meta("ident")=="2")
+```
+
+![DBPlot3](DBPlot3.jpeg)
+
+```
 #After
 DBPlot("Score", group.by = "Sample", color.by = "age",
        plots = c("vlnplot","jitter","boxplot"),
@@ -292,7 +297,6 @@ DBPlot("Score", group.by = "Sample", color.by = "age",
 )
 ```
 
-![DBPlot3](DBPlot3.jpeg)
 ![DBPlot4](DBPlot4.jpeg)
 
 ## Helper functions
