@@ -1,14 +1,18 @@
 # RNAseqPlotR
 
-This is a tutorial for using my currently unamed package of Seurat/DESeq auxiliary functions in RNAseqPlotR.R
+This is a tutorial for using my RNAseqPlotR package of Seurat/DESeq/EdgeR auxiliary functions.  It is currently in the form of an Rscript, [RNAseqPlotR.R](https://github.com/dtm2451/RNAseqPlotR/RNAseqPlot.R).
 
-RNAseqPlotR.R is a colorblindness-friendly package of functions built for analysis and visualization of rnaseq data.  It includes various helper and plotting functions for working with RNAseq data. I parsonally use the helper functions (especially meta() and get.metas()) constantly, but I imagine that the main draw for others will be the plotting functions.
+RNAseqPlotR.R is a color blind friendly package of functions built for analysis and visualization of rnaseq data.  It includes various helper and plotting functions for working with RNAseq data. I personally use the helper functions (especially meta() and get.metas()) constantly, but I imagine that the main draw for others will be the plotting functions.
 
 All plotting functions spit out default-themed plots upon minimal coding input for daily analysis needs, but they also allow various manipulations to provide for out-of-the-box submission-quality figures as well.
 
-I built the functions while analyzing single cell RNAseq data with Seurat, but since then, I have started to add functionality for handling bulk RNAseq data as well.  Currently, the bulk capabilities only extend to DESeq-analyzed bulk data, but I plan to add functionality for edgeR in the near future.
+I built the functions while analyzing single cell RNAseq data with Seurat.  Since then, I have started to add functionality for handling bulk RNAseq data as well. Currently, bulk capabilities only extend to DESeq-analyzed bulk data. I plan to add functionality for edgeR in the near future. I will add information about handling bulk data with these functions at that time.
 
 NOTE: These functions are currently in a functional though not yet prime-time state.  My goal is that they will eventually be released as part of a package that will have all the typical function documentation.  Currently, documentation is in the form of header comments in the function code.  Hopefully, with those and with this tutorial, all the workings of these functions can be figured out!  If you have questions about how to do something, or would like to suggest new features, my eamil is <daniel.bunis@ucsf.edu>.
+
+## Colors:
+
+The default colors of this package are color blind friendly.  Source: [Wong B, "Points of view: Color blindness." Nature Methods, 2011.](https://www.nature.com/articles/nmeth.1618)  Currently, when you source my package into your workspace, a variable called MYcolors is created that has the 8 colors refenced in the Points of View paper stored inside.  Lighter and darker versions of these same colors are then appended to make it a 24 color vector.
 
 ## Plotting Functions
 
@@ -31,44 +35,57 @@ Now, load in your Seurat dataset, and you'll be ready to get going!  If you are 
 HSPCs <- readRDS("~/Box Sync/Layering Analysis/10X/Savespot1901/HSPCs_cca-alinged.rds")
 ```
 
-### Basic use and setting of 'DEFAULT'
+### Basic use
 
 The basic use of most functions, including all of the plotting functions is `funtion(var, object, other.inputs)` where var is the target variable (often this will be the "name" of a metadata or gene) and object is the Seurat-object target.  One of the most useful other inputs is probably cells.use.
 
 **`var`** - When var is given as a string name of a gene or metadata, default plot titles are generally generated and the functions will automatically grab the relevant values to plot.  A discrete vector can also be provided, but note that even if cells.use is going to be used to subset down to only certain cells, this vector must include data for all the cells.
 
-**`object` & DEFAULT** - Object can be given in 3 ways:
+**`object`** - Object is the Seurat or RNAseq-class the function should call on.  It can be entered in any of 3 ways:
 
 - the actual object
 - "quoted" name of the object
-- or left out completely after setting DEFAULT <- "quoted" name of the object
+- or left out completely after setting `DEFAULT <- "object"`
 
-Using the 3rd method allows for quickest use of the plotting functions.  For example, a t-SNE plot with cells, colored by their age, can then be generated with just DBDimPlot("age") rather than with DBDimPlot("age","HSPCs"), as shown below.
+**`DEFAULT`** - Every function in RNAseqPlotR has `object = DEFAULT` as it's default setup. Thus, if you do not provide an `object` input, it will look for a variable named DEFAULT within your workspace. Try this: Store your quoted object name as a variable named DEFAULT, code = `DEFAULT <- "object"`, to skip the object input altogether! For example, if I start by running `DEFAULT <- "HSPCs"`, then a t-SNE plot with datapoints colored by their age can be generated with just `DBDimPlot("age")` rather than with `DBDimPlot("age","HSPCs")`.
 
-Other Required Inputs, **`group.by` and `color.by`** - DBBarPlot and DBPlot have 1 and 2 other required inputs.  For both, group.by is required in order to set the x axis groupings.  For DBPlot, color.by is required as well for setting the fill color of the violin-plotting or box-plotting.  The inputs for each of these variables are the "quoted" name of a meta.data of the object.  These should be whatever metadata you wish to have the cells grouped by / colored by.
+Other Required Inputs, **`group.by` and `color.by`** - DBBarPlot(var, object, group.by) and DBPlot(var, object, group.by, color.by) have 1 and 2 other required inputs.  For both, group.by is required in order to set the x axis groupings.  For DBPlot, color.by is required as well for setting the fill color of the violin-plotting or box-plotting.  The inputs for each of these variables are the "quoted" name of a meta.data of the object.  These should be whatever metadata you wish to have the data grouped by / colored by.
 
 #### Basic use examples
 
 ```
-DEFAULT <- "HSPCs" #After setting this, the object slot can be left out entirely!
 #DBDimPlot
-DBDimPlot("age")
+DBDimPlot("age", "HSPCs")
+
 #DBPlot
-DBPlot("percent.mito", group.by = "Sample", color.by = "age")
+DBPlot("percent.mito", "HSPCs", group.by = "Sample", color.by = "age")
+
 #DBBarPlot
+DBBarPlot("new.HSPCcelltype", "HSPCs", group.by = "Sample")
+
+#Set DEFAULT
+DEFAULT <- "HSPCs" #After setting this, the object slot can be left out entirely!
+
+#DBDimPlot, but allowing it to find "HSPCs" when it looks for DEFAULT
+DBDimPlot("age")
+
+#same for DBPlot
+DBPlot("percent.mito", group.by = "Sample", color.by = "age")
+
+#same for DBBarPlot
 DBBarPlot("new.HSPCcelltype", group.by = "Sample")
 ```
 
 ### Intuitive inputs
 
-"ident" = If "ident" is provided as the `var` then the functions know to grab `object@ident`.
+"ident" = If "ident" is provided as the `var` then all functions will look for `object@ident`, which is where clustering gets stored in a Seurat object.
 
 "gene-name" or "meta-name" = If a character string is provided that is not "ident", then helper functions is.meta() and is.gene() will be called to determine how to proceed. If the "quoted" name of a metadata slot is given as `var`, then `object@metadata$var` will be used and the plot will be titled "var" by default.  If the "quoted" name of a gene is given as `var`, then `object@data[gene,]` will be used and the plot will be titled "Expression of var" by default.
 
 ```
-DBDimPlot("ident", sub = "What happens when \"ident\" is provided")
-DBDimPlot("age", sub = "What happens when a \"meta-name\" is provided")
-DBDimPlot("CD34", sub = "What happens when a \"gene-name\" is provided")
+DBDimPlot("ident") # Default: main plot title will also be set to Ident.  y-axis label too for DBPlot.
+DBDimPlot("age") # Default: main plot title will be set to 'var'. y-axis label too for DBPlot.
+DBDimPlot("CD34") # Default: main plot will be set to "'var' expression". y-axis label too for DBPlot.
 ```
 
 ### Useful Manipulations Examples
@@ -100,6 +117,8 @@ DBPlot("Score",
        sub = "MUCH MORE FLEXIBLE then Seurat's native DimPlot and VlnPlot"
 )
 ```
+
+(Images to come soon.)
 
 ### Key advanced inputs:
 
@@ -148,30 +167,18 @@ DBDimPlot("new.HSPCcelltype", reduction.use = "cca.aligned", dim.1 = 1, dim.2 = 
 
 **`plots`** = in DBPlot, this input is used to set the order of data plotting. Options are "vlnplot" for making violin plots, "boxplot" for making box plots, and "jitter" (dot plotting with random spread added in the x direction for visualization).  Usage = `plots = c("vlnplot", "boxplot", "jitter")`. The order that these options are given sets the bottom to top order that they will be plotted.  So actually giving `c("vlnplot", "boxplot", "jitter")` will put the violin plots on the bottom, with a boxplot on top of that and the jitter plotting on the top layer.  Default: plots = c("jitter","vlnplot") as I have found this to be most useful for 10,000+ cell datasets.
 
-**`range`, `low`, and `high`** = in DBPlot, `range` sets the bounds of the y axis. In DBDimPlot, `range` sets the cutoffs for lowest and highest values that the `low` and `high` colors should be used for. `low` and `high` set the color scale. Usage: `range = c(low-end, high-end)` with low-end and high-end both being numbers. `low` or `high` = "quoted" color name, e.g. "blue", or "quoted" hex code color representation, e.g. "#F0E442". Defaults are the extents of the data for range and yellow&blue fro low&high.
-
 ```
-# With default plots:
+# This default plotting code...
 DBPlot("Score", group.by = "Sample", color.by = "age", cells.use = meta("new.HSPCcelltype")=="HSC")
-# Same as the default option:
+# ...will produce the same plot as:  (jitter plot behind a violin plot)
 DBPlot("Score", group.by = "Sample", color.by = "age", cells.use = meta("new.HSPCcelltype")=="HSC",
        plots = c("jitter", "vlnplot"))
-# Changing the order and adding a boxplot in the middle
+# Changing the order and adding a boxplot in the middle: (violin plot in the back, boxplot on top, jitter on top of that) 
 DBPlot("Score", group.by = "Sample", color.by = "age", cells.use = meta("new.HSPCcelltype")=="HSC",
        plots = c("vlnplot", "boxplot", "jitter"))
-# Adjusting the range
-DBPlot("Score", group.by = "Sample", color.by = "age", cells.use = meta("new.HSPCcelltype")=="HSC",
-       plots = c("vlnplot", "boxplot", "jitter"),
-       range = c(-40,50))
-
-# And for DBDimPlot, this is the original
-DBDimPlot("Score", cells.use = meta("new.HSPCcelltype")=="HSC")
-# And this is the same data with a narrowed scale and adjusted colors
-DBDimPlot("Score", cells.use = meta("new.HSPCcelltype")=="HSC",
-          range = c(-20,10), low = "grey", high = "red")
 ```
 
-**`color.panel`, `colors`** for setting the colors to be used. Default = a colorblind friendly colorset with 8 colors! Credit to Wong, B. “Points of view: Color blindness” Nature Methods, 2011.  color.panel sets the color options, and colors can be used to adjust which colors are used for what data.  Usage: (MYcolors <- c("#E69F00", "#56B4E9", "#009E73", "#F0E442", "#0072B2", "#D55E00", "#CC79A7", "#000000") which is run when the file is sourced); `color.panel = MYcolors`. This is the default. colors = c(1:8) by default or c(8,2:7) if black is wanted for the first grouping instead 
+**`color.panel`, `colors`** for setting the colors to be used. Default = a colorblind friendly colorset with 8 colors! Credit to Wong, B. “Points of view: Color blindness” Nature Methods, 2011.  color.panel sets the color options, and colors can be used to adjust which colors are used for what data.  Usage: (plotting.colors <- c("#E69F00", "#56B4E9", "#009E73", "#F0E442", "#0072B2", "#D55E00", "#CC79A7", "#000000") which is run when the file is sourced); `color.panel = MYcolors`. This is the default. colors = c(1:8) by default or c(8,2:7) if black is wanted for the first grouping instead 
 
 ```
 #Default of DBDimPlot("new.HSPCcelltype") is the same as
@@ -180,7 +187,7 @@ DBDimPlot("new.HSPCcelltype", color.panel = MYcolors, colors = c(1:8))
 DBDimPlot("new.HSPCcelltype", colors = c(8,2:7))
 ```
 
-**`shape` / `shape.by`, `shapes` / `jitter.shapes`** = in DBDimPlot and DBPlot respectively. *shape.by* in DBPlot acts exactly like `color.by` except that instead of setting the fill colors for `plots = "vlnplot"` or `"boxplot"`, it sets the shaping used for `plot = "jitter"`.  Usage = provide the "quoted" name of a metadata that has the discrete options you are looking to have shapes be set by.  *shape* works very similarly in DBDimPlot except that it changes the shapes of the dots in the dimplot AND in that it can additionally be used to change the shape of all dots by simply setting it to a different number corresponding to a ggplot shape from the defult 16 (= filled circles). Usage = `shape = 16` OR `shape = "meta-name"`. *shapes* and *jitter.shapes* provides the set of shapes that should be used. For a list of possibilities, see here <https://www.rstudio.com/wp-content/uploads/2015/03/ggplot2-cheatsheet.pdf>, but know that there are only maybe 6 good options, and that's what I put in the default. Default: `shapes=c(16,15,17,23,25,8)` and same for `jitter.shapes=c(16,15,17,23,25,8)`.
+**`shape` / `shape.by`, `shapes` / `jitter.shapes`** = in DBDimPlot and DBPlot respectively. *shape.by* in DBPlot acts exactly like `color.by` except that instead of setting the fill colors for `plots = "vlnplot"` or `"boxplot"`, it sets the shaping used for `plot = "jitter"`.  Usage = provide the "quoted" name of a metadata that has the discrete options you are looking to have shapes be set by.  *shape* works very similarly in DBDimPlot except that it changes the shapes of the dots in the dimplot AND in that it can additionally be used to change the shape of all dots by simply setting it to a different number corresponding to a ggplot shape from the defult 16 (= filled circles). Usage = `shape = 16` OR `shape = "meta-name"`. *shapes* and *jitter.shapes* provides the set of shapes that should be used. For a list of possibilities, see here <https://www.rstudio.com/wp-content/uploads/2015/03/ggplot2-cheatsheet.pdf>. Default: `shapes=c(16,15,17,23,25,8)` and same for `jitter.shapes=c(16,15,17,23,25,8)`.
 
 ```
 DBPlot("Score", group.by = "Sample", color.by = "age", cells.use = (meta("new.HSPCcelltype")=="MEP" | meta("new.HSPCcelltype")=="GMP"), plots = c("vlnplot", "jitter"),
@@ -191,10 +198,24 @@ DBPlot("Score", group.by = "Sample", color.by = "age", cells.use = (meta("new.HS
        jitter.shapes = c(15,16))
 ```
 
+**`range`, `low`, and `high`** = in DBPlot, `range` sets the bounds of the y axis. In DBDimPlot, `range` sets the cutoffs for lowest and highest values that the `low` and `high` colors should be used for. `low` and `high` set the color scale. Usage: `range = c(low-end, high-end)` with low-end and high-end both being numbers. `low` or `high` = "quoted" color name, e.g. "blue", or "quoted" hex code color representation, e.g. "#F0E442". Defaults are the extents of the data for range and yellow&blue fro low&high.
+
+```
+# Adjusting the range of DBPlot or DBBarPlot
+DBPlot("Score", group.by = "Sample", color.by = "age", cells.use = meta("new.HSPCcelltype")=="HSC",
+       plots = c("vlnplot", "boxplot", "jitter"),
+       range = c(-40,50))
+
+# Adjusting the range and colors of a DBDimPloot
+DBDimPlot("Score", cells.use = meta("new.HSPCcelltype")=="HSC",
+          range = c(-20,10), low = "grey", high = "red")
+```
+
 **`theme`** = If you would like to use your own theme, you can provide a ggplot theme here.  Provide the theme object (would be labeled as a 'list' in your workspace).  Note: This particular feature has only been lightly tested.
 
 ```
-prettyplot <- theme(text = element_text(size = 14, color="black"),
+#Make a theme object
+prettyplot.theme <- theme(text = element_text(size = 14, color="black"),
                     panel.background = element_rect(fill = "transparent",colour = NA),
                     panel.grid.minor = element_blank(),
                     panel.grid.major = element_blank(),
@@ -202,7 +223,19 @@ prettyplot <- theme(text = element_text(size = 14, color="black"),
                     legend.title = element_text(colour="black", size=14,face="bold"),
                     legend.text = element_text(colour="black", size = 12, face="plain"),
                     plot.background = element_rect(fill = "transparent",colour = NA))
-DBDimPlot("new.HSPCcelltype", theme = prettyplot)
+#Make a plot with this theme
+DBDimPlot("new.HSPCcelltype", theme = prettyplot.theme)
+#Make a plot by calling theme inside the Plotting function call:
+DBDimPlot("new.HSPCcelltype",
+          theme = theme(text = element_text(size = 14, color="black"),
+                        panel.background = element_rect(fill = "transparent",colour = NA),
+                        panel.grid.minor = element_blank(),
+                        panel.grid.major = element_blank(),
+                        axis.text=element_text(color="black"),
+                        legend.title = element_text(colour="black", size=14,face="bold"),
+                        legend.text = element_text(colour="black", size = 12, face="plain"),
+                        plot.background = element_rect(fill = "transparent",colour = NA))
+          )
 ```
 
 **DBPlot specific adjustments** There are many more.
@@ -239,6 +272,8 @@ DBPlot("Score", group.by = "Sample", color.by = "age", plots = c("vlnplot","jitt
 )
 ```
 
+(Image to come soon.)
+
 ## Helper functions
 
 These make manipulating Seurat data, and using my plotting functons, easier.
@@ -256,99 +291,3 @@ These make manipulating Seurat data, and using my plotting functons, easier.
 **`extDim()`**: extracts the loadings of each cell for a given dimensional reduction space. Usage = extDim(reduction.use, dim, object) where: reduction.use is the all lowercase, quoted, key for the target dr space, "tsne", "pca", "ica", "cca", "cca.aligned"; where dim is the component #, like 1 vs 2 for PC1 vs PC2; where object is the "quoted" name of the seurat object of interest.
 
 **`rankedBarcodes`**: Spits out a CellRanger-websummary-like plot of #UMI vs #cells.  Usage = rankedBarcodes(object) with the actual object being given, not the name in quotes.
-
-## RNAseq Class: DESeq Functionality
-
-I built what's essentially a wrapper for DESeq2 data that adds in extra pieces in a structure similar to the structure of a Seurat object.  I did this by creating an RNAseq class object.
-
-The parts of an RNAseq object:
-
-- `@counts` = "matrix", = essentially the raw counts data
-- `@dds` = "DESeqDataSet", = the DESeq object *this is the only required input for starting an RNAseq object*
-- `@rlog` = "matrix", = regularized log normalized data
-- `@meta.data` = "data.frame", = where to add meta.data. Anything already in the DESeq will be populated automatically 
-- `@pca` = "list", = prcomp object stored as a list because I'm an R object oriented noob.
-- `@var.genes` = "character", = the list of genes that went into generating the PCA
-- `@samples` = "character", = the names of all the separate samples
-- `@exp.filter` = "logical", = whether a gene passed the %expressed accross conditions filter
-- `@CVs` = "numeric", = the coefficient of variation of each gene calculated as mean/sd
-
-### Two big reasons to use this RNAseq class
-
-1.  RNAseq objects can be used in all the same function described above =)
-2.  Having all the data and meta.data stored together makes saving /re-loading easier!
-
-### RNAseq functions:
-
-Currently, there is only one function specific to RNAseq, and that's the one for generating the object:
-
-**`NewRNAseq`** = This function takes in a DESeq2 object, the output of DESeq(), and then does varying amounts more.
-
-Inputs: `dds`, `run_PCA`, `Ngenes`, `blind`, `counts`
-
-If `run_PCA` is set to `TRUE`, then PCA calculation will be run with prcomp, with the method described below, and all parts of the object will be populated.
-
-If `run_PCA` is set to `FALSE`, just `@counts`, `@samples`, and `@metadata` will be populated.
-
-If raw counts data, a matrix with columns = genes and rows = samples, is provided in `counts`, then this data will be put in the object@counts slot instead of the counts from the `dds`.  This is good practice if you used an expression cutoff before importing your data into DESeq.
-
-PCA calculation method:
-
-1.  regularized log calculation, blinded or not based on the logical given to `blind`.
-2.  Filtration of genes based on:
-  - if they are exprssed in at least 75% of samples from each experimental condition (condition grouping is obtained from the dds, so you do not need to providde this.). Note: passage logical is stored in `object@exp.filter`
-  - coefficient of variation (mean/sd).  Only the top `Ngenes` genes that passed the expression filter are used.
-3.  PCA calculation is run on the centered and scaled @rlog data for the genes that passed the filters. Note: names of these genes are stored in object@var.genes
-
-```
-#Loading some of my data to play with...
-load("~/Box Sync/UCSF/Burt Lab/Layering/3_bulk_CD4/ANALYSIS/in-R/Bulk CD4s/Savespot1811/bulkCD4.rdata")
-dds <- bulkCD4@dds
-```
-
-```
-#Basic generation without PCA population:
-NewData <- NewRNAseq(dds)
-str(NewData, max.level = 2)
-```
-
-As you can see, this populated the counts, dds, metadata, and Samples @slots.  Not many of my functions can be used at this point
-
-To run pca and populate the rest, run it with `run_PCA = T`
-
-```
-NewData <- NewRNAseq(dds, run_PCA=T) #can also use Ngenes = # to set the number of genes cutoff or blind = T/F to set whether blinding to samples' conditions should be used when calculating rlog.
-str(NewData, max.level = 2)
-```
-
-Now it's all there!  And now we can use my plotting functions!
-
-```
-DEFAULT <- "NewData"
-get.metas()
-meta.levels("Age")
-meta("Age")
-is.gene("IKZF2")
-#DBDimPlot defaults to plotting on PC1 vs PC2 for RNAseq data, and this code can be used to automatically display the percent of variance attributed to each PC.
-DBDimPlot("Age", size = 3, ellipse = T,
-          xlab = paste0("PC1, ", 100*round(x=summary(bulkCD4@pca[[1]])$importance[2,1], digits = 3),"%"),
-          ylab = paste0("PC2, ", 100*round(x=summary(bulkCD4@pca[[1]])$importance[2,2], digits = 3),"%"))
-# You can make provide a theme and change the look:
-prettyplot <- theme(text = element_text(size = 14, color="black"),
-                    panel.background = element_rect(fill = "transparent",colour = NA),
-                    panel.grid.minor = element_blank(),
-                    panel.grid.major = element_blank(),
-                    axis.text=element_text(color="black"),
-                    legend.title = element_text(colour="black", size=14,face="bold"),
-                    legend.text = element_text(colour="black", size = 12, face="plain"),
-                    plot.background = element_rect(fill = "transparent",colour = NA))
-DBDimPlot("Age", size = 3, ellipse = T, theme = prettyplot,
-          xlab = paste0("PC1, ", 100*round(x=summary(bulkCD4@pca[[1]])$importance[2,1], digits = 3),"%"),
-          ylab = paste0("PC2, ", 100*round(x=summary(bulkCD4@pca[[1]])$importance[2,2], digits = 3),"%"))
-#DBPlot can be used to display the PC1 scores using the extDim fundtion, of each sample, grouped by Age.
-DBPlot(extDim("pca",1), group.by = "Age", color.by = "Age", plots=c("boxplot"), main = "PC1")
-#As with Seurat data, DBPlot can be used to display the rlog expression of any gene by just giving the gene name.
-DBPlot("IKZF2", group.by = "Age", color.by = "Age", plots=c("boxplot"))
-#As with Seurat data, DBPlot can be used to display any meta.data as well by just giving the gene name.
-DBPlot("Nreads", group.by = "Age", color.by = "Age", plots=c("boxplot"), main = "Number of reads per sample")
-```
