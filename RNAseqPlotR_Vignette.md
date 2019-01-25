@@ -80,12 +80,12 @@ DBBarPlot("new.HSPCcelltype", group.by = "Sample")
 
 "ident" = If "ident" is provided as the `var` then all functions will look for `object@ident`, which is where clustering gets stored in a Seurat object.
 
-"gene-name" or "meta-name" = If a character string is provided that is not "ident", then helper functions is.meta() and is.gene() will be called to determine how to proceed. If the "quoted" name of a metadata slot is given as `var`, then `object@metadata$var` will be used and the plot will be titled "var" by default.  If the "quoted" name of a gene is given as `var`, then `object@data[gene,]` will be used and the plot will be titled "Expression of var" by default.
+"gene-name" or "meta-name" = If a character string is provided that is not "ident", then helper functions is.meta() and is.gene() will be called to determine how to proceed. If the "quoted" name of a metadata slot is given as `var`, then `object@meta.data$var` will be used and the plot will be titled "var" by default.  If the "quoted" name of a gene is given as `var`, then `object@data[gene,]` will be used and the plot will be titled "'var' Expression" by default.
 
 ```
 DBDimPlot("ident") # Default: main plot title will also be set to Ident.  y-axis label too for DBPlot.
 DBDimPlot("age") # Default: main plot title will be set to 'var'. y-axis label too for DBPlot.
-DBDimPlot("CD34") # Default: main plot will be set to "'var' expression". y-axis label too for DBPlot.
+DBDimPlot("CD34") # Default: main plot will be set to "'var' Expression". y-axis label too for DBPlot.
 ```
 
 ### Useful Manipulations Examples
