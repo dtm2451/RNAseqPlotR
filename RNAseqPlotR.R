@@ -3,10 +3,11 @@
 # All others are helper functions that can make Seurat and DESeq analysis easier to code!
 # Support for other common bulk RNAseq differential expression packages is planned.
 
-MYcolors <- c("#E69F00", "#56B4E9", "#009E73", "#F0E442", "#0072B2", "#D55E00", "#CC79A7", "#000000")
-library(ggplot2, quietly = T)
-library(Seurat, quietly = T)
-library(colorspace, quietly = T)
+MYcolors <- c("#E69F00", "#56B4E9", "#009E73", "#F0E442", "#0072B2", "#D55E00", "#CC79A7", rgb(.4,.4,.4))
+library(ggplot2, quietly = T, warn.conflicts = F)
+library(Seurat, quietly = T, warn.conflicts = F)
+library(colorspace, quietly = T, warn.conflicts = F)
+library(gridExtra, quietly = T, warn.conflicts = F)
 
 ################## MAIN FUNCTIONS ###################
 
@@ -20,7 +21,8 @@ DBDimPlot <- function(var="ident", object = DEFAULT, reduction.use = NA, dim.1 =
                       do.label = F, label.size = 5, highlight.labels = T, label.by = NULL,
                       rename.groups = NA,
                       low = "#F0E442", high = "#0072B2", range = NULL,
-                      color.panel = MYcolors, colors = 1:length(color.panel)){
+                      color.panel = MYcolors, colors = 1:length(color.panel),
+                      do.letter = NA){
   #Makes a plot where colored dots are overlayed onto the dim.reduction plot of choice.
   #
   #object                 the Seurat or RNAseq object
@@ -52,6 +54,8 @@ DBDimPlot <- function(var="ident", object = DEFAULT, reduction.use = NA, dim.1 =
   #legend.size            The Size to increase the plotting of legend shapes to (for discrete variable plotting)
   #legend.title           The title for the legend.  Set to NULL if not wanted.
   #rename.groups          new names for the identities of var.  Change to NULL to remove labeling altogether.
+  #do.letter              for when there are lots of descrete variables, it can be hard to see by just color / shape.
+                          # NOTE: Lettering is incompatible with changing dots to shapes, so this wwill turn that off!
   
   #Establish Defaults
   #If cells.use = NA (was not provided), populate it to be all cells or all samples.
@@ -104,6 +108,27 @@ DBDimPlot <- function(var="ident", object = DEFAULT, reduction.use = NA, dim.1 =
     }
   } 
   
+  ## Groundwork for adding letter labeling of dots
+  #Decide if letters should be added or not
+  #If#1) if do.letter was already set, we'll just go with waht the user wanted!
+  if(is.na(do.letter)){
+    #If#2) if the data is discrete, continue. (Otherwise, it is continuous so letters would not make sense!)
+    if(typeof(Y)=="character" | typeof(Y)=="integer"){
+      #If#3) if the number of groups is 8 or more, letters can be recommended.
+      if(length(levels(as.factor(Y)))>=8){
+        do.letter <- TRUE
+      } else { do.letter <- FALSE }
+    } else { do.letter <- FALSE }
+  } else { do.letter <- FALSE }
+  # If adding letters, create a vector of what those labels should be
+  if(do.letter){
+    letter.labels <- c(LETTERS, letters, 0:9, "!", "@", "#", "$", "%", "^", "&", "*", "(", ")", "-",
+                       "+", "_", "=", ";", "/", "|", "{", "}", "~")[1:length(levels(as.factor(Y)))]
+    names(letter.labels) <- levels(Y)
+    letter.colors <- c(rep("white",7), rep("black",10),rep("white",9))[1:length(levels(as.factor(Y)))]
+    names(letter.colors) <- levels(Y)
+  }
+  
   ###Start building the plot###
   p <- ggplot()
       
@@ -122,12 +147,22 @@ DBDimPlot <- function(var="ident", object = DEFAULT, reduction.use = NA, dim.1 =
   #Overlay the target data on top
   # If 'shape' input was the name of a meta.data, aka type=character, treat shape as an aesthetic for performing grouping.
   # Otherwise it is a number and belongs outside of aes.  
-  if (typeof(shape)=="character") {
+  if (typeof(shape)=="character" & !do.letter) {
     p <- p + geom_point(data=Target_dat, aes(x = dim1, y = dim2, colour = Y, shape=shape), size=size) +
+      if(do.letter){geom_point(data=Target_dat, aes(x = dim1, y = dim2, shape = Y), color = letter.colors, size=size)} +
       scale_shape_manual(values = shapes[1:length(levels(as.factor(Target_dat$shape)))],
                          labels = levels(as.factor(as.character(Target_dat$shape))))
   }  else {
-    p <- p + geom_point(data=Target_dat, aes(x = dim1, y = dim2, colour = Y), shape= Shape, size=size)
+    p <- p + geom_point(data=Target_dat, aes(x = dim1, y = dim2, colour = Y), shape= Shape, size=size, stroke = 0)
+      if(do.letter){
+        p <- p +
+        geom_point(data=Target_dat, aes(x = dim1, y = dim2, shape = Y), color = "black", size=size/2) +
+        scale_shape_manual(name = legend.title,
+                           values = letter.labels#,
+                           # if(!(is.na(rename.groups[1]))){
+                           #   labels = rename.groups}
+                           )
+      }
   }
   
   ###Add ellipse###
@@ -144,17 +179,11 @@ DBDimPlot <- function(var="ident", object = DEFAULT, reduction.use = NA, dim.1 =
   if (is.null(main) & auto.title==T){
     #If var is a meta.data, make the title = var
     if(is.meta(var, object)){main <- var}
-    #If var is a gene, make the title "Expression of "var
-    if(is.gene(var, object)){main <- paste0("Expression of ", var)}
+    #If var is a gene, still make the title = var
+    if(is.gene(var, object)){main <- var}
   }
-  #If main was provided, use that as the main title
-  if (!is.null(main)) {
-    p <- p + ggtitle(main, subtitle = sub)
-  }
-  #If sub was provided, use that as the subtitle
-  # if (!is.null(sub)) {
-  #   p <- p + ggtitle(subtitle = sub)
-  # }
+  #Add titles
+  p <- p + ggtitle(main, subtitle = sub)
   
   ### Add Labels ###
   if (do.label) {
@@ -222,9 +251,12 @@ DBDimPlot <- function(var="ident", object = DEFAULT, reduction.use = NA, dim.1 =
       if (!is.null(legend.size)){
                         #First, change the size of the dots in the legend, unless legend.size was set to NULL
                         #Also, set the legend title.  Given input if given, or remove if still null.
-        p <- p + guides(colour = guide_legend(override.aes = list(size=legend.size), title = legend.title),
-                        shape = guide_legend(override.aes = list(size=shape.legend.size), title = shape.legend.title)
-                        )
+        if(do.letter){
+          p <- p + guides(colour = guide_legend(override.aes = list(size=legend.size)))
+        } else {
+          p <- p + guides(colour = guide_legend(override.aes = list(size=legend.size)),
+                          shape = guide_legend(override.aes = list(size=shape.legend.size), title = shape.legend.title))
+        }
       }
     }
   } else {
@@ -306,11 +338,13 @@ DBPlot <- function(var, object = DEFAULT, main = NULL, sub = NULL, group.by,
   if (is.meta(var, object)){Y <- meta(var, object)}
   if (is.gene(var, object)){Y <- gene(var, object)}
   if (!(is.meta(var, object)|is.gene(var, object))){Y <- var}
-  #Unless ylab has been changed from default "make" to NULL, set default y-labels if var is "metadata" or "gene".
+  #Unless ylab has been changed from default "make", set default y-labels if var is "metadata" or "gene".
+  # If set to "var" use the 'var'.  If set to 'NULL', ylab will be removed later.
   if (!(is.null(ylab))){
     if (ylab=="make" & is.meta(var, object)) {ylab <- var}
     if (ylab=="make" & is.gene(var,object)) {ylab <- paste0(var," expression")}
     if (ylab=="make") {ylab <- NULL}
+    if (ylab=="var") {ylab <- var}
   }
   #Update a holder 'Shape' variable if 'shape.by' is a meta
   if (is.meta(shape.by, object)){Shape <- meta(shape.by, object)} else {Shape = NA}
@@ -411,7 +445,7 @@ DBPlot <- function(var, object = DEFAULT, main = NULL, sub = NULL, group.by,
   #Set default title if no 'main' was given and if 'autotitle' is set to TRUE
   if (is.null(main) & auto.title==T){
     if(is.meta(var, object)){main <- var}
-    if(is.gene(var, object)){main <- paste0("Expression of ", var)}
+    if(is.gene(var, object)){main <- var}
   }
   #Change the x-axis labels if a labels was given.
   if (!(is.null(labels))){
@@ -574,6 +608,64 @@ DBBarPlot <- function(var="ident", object = DEFAULT, group.by = "Sample",
     return(p)
 }
 
+#### multiDBPlot : a function for quickly making multiple DBPlots arranged in a grid. 
+multiDBPlot <- function(vars, object = DEFAULT,
+                        show.legend = F,
+                        ncol = 3,
+                        nrow = NULL,
+                        add.title=T,
+                        ylab = F,
+                        ...){
+  #This function will spit out multiple DBPlots arranged into a grid.
+  #
+  #Inputs:
+  #vars               A list of vars from which to generate the separate plots
+  #object             the Seurat or RNAseq object to draw from = name of object in "quotes". REQUIRED.
+  #show.legend        Whether or not you would like a legend to be plotted.  Default = FALSE
+  #ncol               How many plots should be arranged per row
+  #nrow               How many rows to arrange the plots into.  Left NULL(/blank) by default.
+  #add.title          Whether a title should be added, TRUE/FALSE
+  #ylab               Whether a y-axis title should be added, TRUE/FALSE or "var"
+  
+  plots <- lapply(vars, function(X) { DBPlot(X, object,
+                                             ylab = if(ylab=="var"){X} else {if(ylab){"make"}else{NULL}},
+                                             auto.title = add.title,
+                                             ...) +
+      theme(legend.position = ifelse(show.legend, "right", "none"))
+  })
+  grid.arrange(grobs=plots, ncol = ncol, nrow = nrow)
+}
+
+#### multiDBDimPlot : a function for quickly making multiple DBPlots arranged in a grid. 
+multiDBDimPlot <- function(vars, object = DEFAULT,
+                           show.legend = F,
+                           ncol = 3, nrow = NULL,
+                           add.title=T, axes.labels=F,...){
+  #This function will spit out multiple DBPlots arranged into a grid.
+  #
+  #Inputs:
+  #vars               A list of vars from which to generate the separate plots
+  #object             the Seurat or RNAseq object to draw from = name of object in "quotes". REQUIRED.
+  #show.legend        Whether or not you would like a legend to be plotted.  Default = FALSE
+  #ncol               How many plots should be arranged per row
+  #nrow               How many rows to arrange the plots into.  Left NULL(/blank) by default.
+  #add.title          Logical, whether a title should be added, TRUE/FALSE
+  #axes.labels        Logical, whether x/y axis labels are wanted.
+  
+  #Interpret axes.labels: If left as FALSE, set lab to NULL so they will be removed.
+                        # If set to TRUE, set it to "make".
+  lab <- if(!axes.labels) {NULL} else {"make"}
+  
+  plots <- lapply(vars, function(X) { DBDimPlot(X, object,
+                                                auto.title = add.title,
+                                                xlab = lab,
+                                                ylab = lab,
+                                                ...) +
+      theme(legend.position = ifelse(show.legend, "right", "none"))
+  })
+  grid.arrange(grobs=plots, ncol = ncol, nrow = nrow)
+}
+
 #################### Helper Functions ########################
 
 #### is.meta: Is this the name of a meta.data slot in my dataset? ####
@@ -730,7 +822,7 @@ rankedBarcodes <- function(object){
 # = helpful for analyzing bulk data if you are used to Seurat structure
 # = adds compatibility to my plotting and helper functions for bulk RNAseq data analyzed with DESeq2
 
-library(DESeq2, quietly = T)
+library(DESeq2, quietly = T, warn.conflicts = F)
 
 Class <- setClass("RNAseq",
                   representation(
