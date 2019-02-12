@@ -58,27 +58,20 @@ Other Required Inputs, **`group.by` and `color.by`** - DBBarPlot(var, object, gr
 #DBDimPlot: Makes a DBDimPlot showing a discrete variable, age, of all cells.
 DBDimPlot("age", "HSPCs")
 
-#DBPlot: Makes a DBPlot showing the percent.mito (the percent of reads that were mitochondrial)
-# of each sample with coloring based on age
-DBPlot("JUN", "HSPCs", group.by = "Sample", color.by = "age")
-
-#DBBarPlot: Makes a DBBarPlot showing the clustering percentages broken down by Sample
-DBBarPlot("ident", "HSPCs", group.by = "Sample")
-
 #Set DEFAULT
 DEFAULT <- "HSPCs" #After setting this, the object slot can be left out entirely!
 
-#DBDimPlot, but allowing it to find "HSPCs" when it looks for DEFAULT
+#The same DBDimPlot, but allowing it to find "HSPCs" when it looks for DEFAULT.  == SIMPLER TYPING
 DBDimPlot("age")
 
-#same for DBPlot
+#And making a multiDBDimPlot is just as simple.
+multiDBDimPlot(var = c("JUN","MPO","SRGN","MAFF","ID1","NPR3","FOS","CD37","ident"))
+
+#DBPlot: Makes a DBPlot showing the per cell expression of JUN of each sample with coloring based on age
 DBPlot("JUN", group.by = "Sample", color.by = "age")
 
-#same for DBBarPlot
+#DBBarPlot: Makes a DBBarPlot showing the clustering percentages broken down by Sample
 DBBarPlot("ident", group.by = "Sample")
-
-#and same for a multiDBDimPlot
-multiDBDimPlot(var = c("JUN","MPO","SRGN","MAFF","ID1","NPR3","FOS","CD37","ident"))
 ```
 
 ![DBDimPlot1](DBDimPlot1.png)
