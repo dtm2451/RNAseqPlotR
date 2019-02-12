@@ -1,9 +1,9 @@
 # RNAseqPlotR
 **A set of functions built for analysis and color blind friendly visualization of single cell and bulk RNA-sequencing data**
 
-![example1](Vignette/DBDimPlot2.jpeg)
-![example2](Vignette/DBBarPlot1.jpeg)
-![example3](Vignette/DBPlot2.jpeg)
+![example1](Vignette/DBDimPlot2.png)
+![example2](Vignette/DBBarPlot1.png)
+![example3](Vignette/DBPlot2.png)
 ![example4](Vignette/multiDBDimPlot1.png)
 
 *For a tutorial on how to use these functions, see [RNAseqPlotR_Vignette.md](Vignette/RNAseqPlotR_Vignette.md)*
