@@ -474,7 +474,7 @@ DBBarPlot <- function(var="ident", object = DEFAULT, group.by = "Sample",
                       color.panel = MYcolors, colors = c(1:length(color.panel)),
                       xlab = NULL, ylab = "make", x.labels = NA, rotate.labels = TRUE,
                       y.labels = c(0,0.5,1), label.by = NA,
-                      main = NULL, sub = NULL, rename.groups = NA,
+                      main = "make", sub = NULL, rename.groups = NA,
                       legend.title = NULL,
                       reorder.x = 1:length(meta.levels(group.by, object))
                       ){
@@ -510,7 +510,7 @@ DBBarPlot <- function(var="ident", object = DEFAULT, group.by = "Sample",
     if (is.meta(var, object)){
       y.var <- meta(var, object)
     }
-  }
+  } else {y.var <- var}
   #group.by to x.var
     #If name of meta in "quotes", obtain the meta
   if(length(group.by)==1 & typeof(group.by)=="character") {
@@ -586,6 +586,16 @@ DBBarPlot <- function(var="ident", object = DEFAULT, group.by = "Sample",
     #If not, just set the colors and name for the legend key
       p <- p+ scale_fill_manual(name = legend.title,
                                 values = color.panel[colors])
+    }
+    
+    #Set var to default if 'main' left as "make".
+    if (!(is.null(main))){
+      if (main=="make" & length(var)==1){
+        make <- var
+      }
+      if (main=="make"){
+        main <- NULL
+      }
     }
     
     #Add the x axis title, plot title and subtitle, 
