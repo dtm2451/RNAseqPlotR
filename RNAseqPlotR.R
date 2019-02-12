@@ -591,7 +591,7 @@ DBBarPlot <- function(var="ident", object = DEFAULT, group.by = "Sample",
     #Set var to default if 'main' left as "make".
     if (!(is.null(main))){
       if (main=="make" & length(var)==1){
-        make <- var
+        main <- var
       }
       if (main=="make"){
         main <- NULL
