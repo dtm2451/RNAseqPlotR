@@ -6,7 +6,7 @@
 ![example3](Vignette/DBPlot2.png)
 ![example4](Vignette/multiDBDimPlot1.png)
 
-*For a tutorial on how to use these functions, see [RNAseqPlotR_Vignette.md](Vignette/RNAseqPlotR_Vignette.md)*
+*For a tutorial on how to use these functions, click [here](Vignette)*
 
 Package includes various helper and plotting functions for working with RNAseq data analyzed in other packages; Seurat for single-cell RNAseq data, DESeq/edgeR for bulk RNAseq data. I personally use the helper functions (especially `meta()` and `get.metas()`) constantly, but I imagine that the main draw for others will be the plotting functions.
 
@@ -28,7 +28,7 @@ Save the code in RNAseqPlotR.R as an Rscript with the same name into your prefer
 source("LOCATION/RNAseqPlotR.R")
 ```
 
-For a tutorial on how to use these functions, see [RNAseqPlotR_Vignette.md](Vignette/RNAseqPlotR_Vignette.md)
+For a tutorial on how to use these functions, see [my Vignette](Vignette)
 
 ## Plotting Functions
 
