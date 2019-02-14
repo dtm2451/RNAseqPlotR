@@ -1,4 +1,4 @@
-# RNAseqPlotR
+# RNAseqPlotR Vignette
 
 This is a tutorial for using my RNAseqPlotR package of Seurat/DESeq/EdgeR auxiliary functions.  It is currently in the form of an Rscript, [RNAseqPlotR.R](https://github.com/dtm2451/RNAseqPlotR/RNAseqPlot.R).
 
