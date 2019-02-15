@@ -8,7 +8,7 @@ I am a deuteranope myself (meaning I have a mostly red, but also some green, col
 4. I added a **`Simulate()`** function that allows for generation of any my packages plots using a color.palet modified to simulate any of the major types of color blindness.
 5. Below, I also describe how to alter your colors for any other package in a way that you can simulate their look to a colorbling individual.
 
-##4. To simulate looking at any plot generated with this package as if you were colorblind yourself:
+## 4. To simulate looking at any plot generated with this package as if you were colorblind yourself:
 
 Say this is the code you would use to generate the plot:
 
@@ -28,7 +28,7 @@ The Simulate() function's inputs are:
 - `plot.function` = the function you want to use.  R may try to add (), but delete that if it does.
 - `...` = any and all inputs that go into the plotting function you want to use.
 
-##5. To alter colors going into any plots not generated with my funcitons:
+## 5. To alter colors going into any plots not generated with my funcitons:
 
 This is based on functions from the colorspace package.  I utilized this package in my Simulate() funciton, as well as the Darken() and Lighten() functions that are also included in the package.  Credit where credit is due and all.
 
