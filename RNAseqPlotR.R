@@ -57,19 +57,55 @@ DBDimPlot <- function(var="ident", object = DEFAULT, reduction.use = NA, dim.1 =
   #do.letter              for when there are lots of descrete variables, it can be hard to see by just color / shape.
                           # NOTE: Lettering is incompatible with changing dots to shapes, so this wwill turn that off!
   
-  #Establish Defaults
+  if (typeof(object)=="S4"){
+    object <- deparse(substitute(object))
+  }
+  
+  ### Establish Defaults and gather some preliminary info ###
   #If cells.use = NA (was not provided), populate it to be all cells or all samples.
-  if (classof(object)=="seurat" & is.null(cells.use)) {cells.use <- eval(expr = parse(text = paste0(object,"@cell.names")))}
-  if (classof(object)=="RNAseq" & is.null(cells.use)) {cells.use <- meta("Samples", object = object)}
+  if (classof(object)=="seurat" & is.null(cells.use)) {
+    cells.use <- eval(expr = parse(text = paste0(object,"@cell.names")))
+  }
+  if (classof(object)=="RNAseq" & is.null(cells.use)) {
+    cells.use <- meta("Samples", object = object)
+  }
+  
   #If reduction.use = NA (was not provided), populate it to be tsne or pca.
   if (classof(object)=="seurat" & is.na(reduction.use)) {reduction.use <- "tsne"}
   if (classof(object)=="RNAseq" & is.na(reduction.use)) {reduction.use <- "pca"}
 
+  #Establish the full list of cell/sample names
+  all.cells <- 
+    if (classof(object)=="RNAseq"){meta("Samples", object = object)
+    } else {
+    if(classof(object)=="seurat") {
+      eval(expr = parse(text = paste0(object,"@cell.names")))
+    }}
+  
+  #Generate the axes labels.
+    #If left as "make", add default axis labels (ex. "tsne_1" or "pca_2").
+  if (!(is.null(xlab))) {
+    if (xlab=="make") {
+      xlab <-
+        if(classof(object)=="seurat"){
+          paste0(eval(expr = parse(text = paste0(object,"@dr$",reduction.use,"@key"))),dim.1)
+        } else {paste0(gen.key(reduction.use),dim.1)}
+    }
+  }
+  if (!(is.null(ylab))) {
+    if (ylab=="make") {
+      ylab <-
+        if(classof(object)=="seurat"){
+          paste0(eval(expr = parse(text = paste0(object,"@dr$",reduction.use,"@key"))),dim.2)
+        } else {paste0(gen.key(reduction.use),dim.2)}
+    }
+  }
+  
   #Build data for populating dat, the data.frame for plotyting.
   #Determine the identity of the provided 'var' and populate Y, the variable used for coloring.
   if(typeof(var)=="character"){
     #If "ident" pull the @ident object from the seurat object
-    if(var == "ident"){Y <- eval(expr = parse(text = paste0(object, "@ident")))}
+    if(var == "ident"){Y <- meta(var, object)}
     #If "is.meta" pull the @meta.data$"var" from the RNAseq or seurat object
     if(is.meta(var, object)){Y <- meta(var, object)}
     #If "is.gene" pull the gene expression data from the RNAseq or seurat object
@@ -94,8 +130,8 @@ DBDimPlot <- function(var="ident", object = DEFAULT, reduction.use = NA, dim.1 =
       Others_dat <- full_dat[!cells.use,]
       Target_dat <- full_dat[cells.use,]
     } else {
-    Others_dat <- full_dat[!(eval(expr = parse(text = paste0(object,"@cell.names"))) %in% cells.use),]
-    Target_dat <- full_dat[eval(expr = parse(text = paste0(object,"@cell.names"))) %in% cells.use,]
+    Others_dat <- full_dat[!(all.cells %in% cells.use),]
+    Target_dat <- full_dat[all.cells %in% cells.use,]
     }
   } 
   if (classof(object)=="RNAseq"){
@@ -130,12 +166,7 @@ DBDimPlot <- function(var="ident", object = DEFAULT, reduction.use = NA, dim.1 =
   }
   
   ###Start building the plot###
-  p <- ggplot()
-      
-  #If not set to NULL and not changed from "make", add default axis labels (ex. "tsne1" or "pca2")
-  if (!(is.null(xlab))) {if (xlab=="make") {xlab <- paste0(reduction.use,dim.1)}}
-  if (!(is.null(ylab))) {if (ylab=="make") {ylab <- paste0(reduction.use,dim.2)}}
-  p <- p + ylab(ylab) + xlab(xlab)
+  p <- ggplot() + ylab(ylab) + xlab(xlab)
   
   #Then Add more layers:
   
@@ -171,7 +202,8 @@ DBDimPlot <- function(var="ident", object = DEFAULT, reduction.use = NA, dim.1 =
                                        aes(x = dim1, y = dim2, colour = Y),
                                        type = "t",
                                        linetype = 2,
-                                       size = 0.5
+                                       size = 0.5,
+                                       show.legend = F
                                        )}
   
   ###Add titles###
@@ -327,6 +359,11 @@ DBPlot <- function(var, object = DEFAULT, main = NULL, sub = NULL, group.by,
   #y.breaks               a list of breaks that should be used as major gridlines. c(break1,break2,break3,etc.)
                           # NOTE: The low and highs of this variable will override `range`.
   #title.legend           whether to leave the title for the plot's legend
+  
+  #Turn the object into a "name" if a full object was given
+  if (typeof(object)=="S4"){
+    object <- deparse(substitute(object))
+  }
   
   #If cells.use = NA (was not provided), populate it to be all cells or all samples.
   if (classof(object)=="seurat" & is.null(cells.use)) {cells.use <- eval(expr = parse(text = paste0(object,"@cell.names")))}
@@ -498,6 +535,11 @@ DBBarPlot <- function(var="ident", object = DEFAULT, group.by = "Sample",
   #legend.title           Title for the legend
   #reorder.x              sequence of numbers from 1:length(meta.levels(group.by)) for providing a new order
                           # for the samples.  Default = alphabetical then numerical.
+
+  #Turn the object into a "name" if a full object was given
+  if (typeof(object)=="S4"){
+    object <- deparse(substitute(object))
+  }
   
   #If cells.use = NA (was not provided), populate it to be all cells or all samples.
   if (classof(object)=="seurat" & is.null(cells.use)) {cells.use <- eval(expr = parse(text = paste0(object,"@cell.names")))}
@@ -646,7 +688,7 @@ multiDBPlot <- function(vars, object = DEFAULT,
   grid.arrange(grobs=plots, ncol = ncol, nrow = nrow)
 }
 
-#### multiDBDimPlot : a function for quickly making multiple DBPlots arranged in a grid. 
+#### multiDBDimPlot : a function for quickly making multiple DBDimPlots arranged in a grid. 
 multiDBDimPlot <- function(vars, object = DEFAULT,
                            show.legend = F,
                            ncol = 3, nrow = NULL,
@@ -673,6 +715,129 @@ multiDBDimPlot <- function(vars, object = DEFAULT,
                                                 ...) +
       theme(legend.position = ifelse(show.legend, "right", "none"))
   })
+
+  grid.arrange(grobs=plots, ncol = ncol, nrow = nrow)
+}
+
+#### multiDBDimPlot_vary_cells: a function for quickly making multiple DBDimPlots arranged in a grid, where
+# instead of varying the var displayed, what varies is the cells that are shown. 
+multiDBDimPlot_vary_cells <- function(var, object = DEFAULT,
+                                      cells.use.meta,
+                                      cells.use.levels = meta.levels(cells.use.meta,object),
+                                      all.cells.plot = T,
+                                      show.legend = F,
+                                      add.single.legend = T,
+                                      ncol = 3, nrow = NULL,
+                                      add.title=T, axes.labels=F,...){
+  #This function will spit out multiple DBPlots arranged into a grid.
+  #
+  #Inputs:
+  #var                A var from which to generate the separate plots
+  #object             the Seurat or RNAseq object to draw from = name of object in "quotes". REQUIRED.
+  #cells.use.meta     The name of the meta.data that will be used for selecting cells.
+  #cells.use.levels   The levels of thee meta.data that you wish to show. NOTE: these will be put into
+                      # plot's subtitle in order to have them be identifiable
+  #all.cells.plot     TRUE/FALSE, whether a plot showing all of the cells should be included last.
+  #show.legend        Whether or not you would like a legend to be plotted.  Default = FALSE
+  #add.single.legend  TRUE/FALSE, whether to add a legend as an additional plot.
+  #ncol               How many plots should be arranged per row
+  #nrow               How many rows to arrange the plots into.  Left NULL(/blank) by default.
+  #add.title          Logical, whether a title should be added, TRUE/FALSE
+  #axes.labels        Logical, whether x/y axis labels are wanted.
+  #NOTE: This function is incompatible with changing the 'colors' input. If you need to change your
+  #      colors, change your color.panel.
+  
+  #Interpret axes.labels: If left as FALSE, set lab to NULL so they will be removed.
+  # If set to TRUE, set it to "make".
+  lab <- if(!axes.labels) {NULL} else {"make"}
+  
+  #Determine if var is continuous vs discrete
+  continuous <- FALSE
+  if (is.gene(var)){
+    continuous <- TRUE
+  }
+  if (is.meta(var)){
+    if (typeof(meta(var))!="character" & typeof(meta(var))!="character"){
+      continuous <- TRUE
+    }
+  }
+  
+  #Set a range if the var represents continuous data, (is.gene() or typeof(meta)!=integer OR character).
+  if (length(range)!=2){
+    range <- NULL
+    if (is.gene(var)){
+      range <- range(gene(var))
+    }
+    if (is.meta(var) & continuous){
+      range <- range(meta(var))
+    }
+  }
+  
+  #Case 1: If var and cells.use.meta are NOT equal:
+    #Need to ensure that colors are consistent.
+  if(var != cells.use.meta){
+    #If data is continuous, then setting the range above has done the job of ensuring color consistency.
+    if (continuous){
+      plots <- lapply(cells.use.levels, function(X) {
+        DBDimPlot(var, object,
+                  cells.use = meta(cells.use.meta) == X,
+                  auto.title = add.title,
+                  xlab = lab,
+                  ylab = lab,
+                  main = X,
+                  range = range,
+                  ...) +
+          theme(legend.position = ifelse(show.legend, "right", "none"))
+      })
+    } else { #If data is discrete, then we need to make sure the right colors are use in each plot!
+      levels <- meta.levels(var)
+      plots <- lapply(cells.use.levels, function(X) {
+        in.this.plot <- (1:length(levels))[levels %in%
+                                           levels(as.factor(meta(var)[meta(cells.use.meta)==X]))]
+        DBDimPlot(var, object,
+                  cells.use = meta(cells.use.meta) == X,
+                  auto.title = add.title,
+                  xlab = lab,
+                  colors = in.this.plot,
+                  ylab = lab,
+                  main = X,
+                  range = range,
+                  ...) +
+          theme(legend.position = ifelse(show.legend, "right", "none"))
+    })
+    }
+  }
+  #Case 2: If var and cells.use.meta are equal
+    #Need to vary the color with each new plot.
+  if(var == cells.use.meta){
+    levels <- meta.levels(cells.use.meta)
+    plots <- lapply((1:length(levels))[levels %in% cells.use.levels], function(X) {
+      DBDimPlot(var, object,
+                cells.use = meta(cells.use.meta) == levels[X],
+                auto.title = add.title,
+                colors = X,
+                xlab = lab,
+                ylab = lab,
+                main = levels[X],
+                range = range,
+                ...) +
+        theme(legend.position = ifelse(show.legend, "right", "none"))
+    })
+  }
+  #Generate all.cells.plot and legend explanation
+  all.plot <- DBDimPlot(var, object,
+                        auto.title = add.title,
+                        xlab = lab,
+                        ylab = lab,
+                        range = range,
+                        ...)
+  legend <- ggdraw(get_legend(all.plot))
+  if (all.cells.plot){
+    plots$all <- all.plot + theme(legend.position = ifelse(show.legend, "right", "none"))
+  }
+  if (add.single.legend){
+    plots$legend <- legend
+  }
   grid.arrange(grobs=plots, ncol = ncol, nrow = nrow)
 }
 
@@ -758,7 +923,7 @@ gene <- function(gene, object=DEFAULT){
   }
   if (classof(object)=="RNAseq"){
     ind <- grep(paste0("^",gene,"$"),rownames(eval(expr = parse(text = paste0(object,"@counts")))))
-    OUT <- eval(expr = parse(text = paste0(object,"@rlog[ind,]")))
+    OUT <- eval(expr = parse(text = paste0(object,"@data[ind,]")))
   }
   OUT
 }
@@ -792,7 +957,20 @@ extDim <- function(reduction.use, dim=1, object=DEFAULT){
 #### classof: for determining if 'object' is a Seurat or RNAseq ####
 classof <- function (object = DEFAULT){
   #object = the name of a Seurat or RNAseq object, in "quotes"
+  if (typeof(object)=="S4"){
+    object <- deparse(substitute(object))
+  }
   class(eval(expr = parse(text = paste0(object)))) 
+}
+
+#### gen.key: for generating the proper axes label for a dimensional reduction type.
+gen.key <- function (reduction.use){
+  #reduction.use = the name of the dr type.
+  key <- reduction.use
+  if (grepl("pca", reduction.use)){key <- "PC"}
+  if (grepl("cca", reduction.use)){key <- "CC"}
+  if (grepl("ica", reduction.use)){key <- "IC"}
+  key
 }
 
 ############################################################################################################
@@ -815,6 +993,46 @@ Lighten <- function(colors, percent.change = 0.25, relative = T){
   lighten(colors, amount = percent.change, space = "HLS", fixup = TRUE, method = ifelse(relative,"relative","absolute"))
 }
 
+#### Simulate: For simulating what a plot would look like as seen by a colorblind person ####
+Simulate <- function(type = "deutan", plot.function, color.panel = NULL, ...){
+  #This function will generate a plot, simulating its look for a colorblind person!
+  #
+  #Inputs:
+  #type             The type of colorblindness that you want to simulate for. Options:
+                    # "deutan" = Most common form of color-blindness, deutanopia/deutanomaly is when
+                    #            the cones mainly responsible for red vision are defective
+                    # "protan" = Second most common form of color-blindness, protanopia/protanomaly
+                    #            is when the cones mainly responsible for green vision are defective
+                    # "tritan" = Third most common form.  Defective cones are responsible for blue vision.
+                    # Other inputs for type will cast an error.
+                    # Note: there are more severe color deficiencies, but they are very rare.
+                    #       Unfortunately, for these types, only non-color methods, like letters
+                    #       or shapes, are recommended.
+  #plot.function    Plotting.function = The plotting function that you want to use/simulate.
+  #color.panel      # Same as for all other plotting funcitons, defaults to MYcolors if you do not provide.
+  #...              All the normal arguments associated with the function that you want to use!
+  
+  #Check that type was given properly
+  if(!(type=="deutan"|type=="protan"|type=="tritan")){
+    return("type must be 'deutan', 'protan', or 'tritan'")
+  }
+  #Set the color panel
+  if(is.null(color.panel)){
+    color.p <- eval(expr = parse(text = paste0(type,"(MYcolors)")))
+  } else {
+    color.p <- eval(expr = parse(text = paste0(type,"(",color.panel,")")))
+  }
+  #Make the plot!
+  plot.function(color.panel = color.p, ... )
+}
+
+############################################################################################################
+
+#### OTHER ####
+
+############################################################################################################
+
+
 #### rankedBarcodes: recreates the 10X cells vs UMI plot ###########
 # Not as pretty, but it gets the job done if you need it.
 rankedBarcodes <- function(object){
@@ -826,7 +1044,10 @@ rankedBarcodes <- function(object){
 
 ################################################################################################################
 
-### Bulk RNA-Seq block ###
+#### Bulk RNA-Seq block ####
+
+################################################################################################################
+
 # The code in this block creates an object for DESeq2 data with similarish structure to a Seurat object.
 # = helpful for analyzing bulk and single cell data together
 # = helpful for analyzing bulk data if you are used to Seurat structure
@@ -838,7 +1059,7 @@ Class <- setClass("RNAseq",
                   representation(
                     counts = "matrix",
                     dds = "DESeqDataSet",
-                    rlog = "matrix",
+                    data = "matrix",
                     meta.data = "data.frame",
                     pca = "list",
                     var.genes = "character",
@@ -849,7 +1070,7 @@ Class <- setClass("RNAseq",
                   prototype(
                     counts = matrix(),
                     dds = new("DESeqDataSet"),
-                    rlog = matrix(),
+                    data = matrix(),
                     meta.data = data.frame(),
                     pca = list(),
                     var.genes = character(),
@@ -859,17 +1080,18 @@ Class <- setClass("RNAseq",
                   )
   )
 
-#### NewRNAseq builds a Seurat-like structure object off of a DESeq input.  Also, can run PCA ####
-NewRNAseq <- function(dds, #A DESeq object, *the output of DESeq()*
+#### NewRNAseq builds an RNAseq object with a DESeq input.  Can run PCA as well. ####
+import.DESeq2 <- function(dds, #A DESeq object, *the output of DESeq()*
                       run_PCA = FALSE,#If changed to TRUE, function will:
-                                           # auto-populate the rlog, var.genes, and PCA fields.
+                                           # auto-populate var.genes, CVs, and pca fields.
                       pc.genes = NULL,
                       Ngenes = 2500, #How many genes to use for running PCA, (and how many genes
                                      # will be stored in @var.genes)
                       blind = FALSE, #Whether or not the rlog estimation should be blinded to sample info.
                                      # Run `?rlog` for more info
-                      counts = NULL  #Raw Counts data, matrix with columns = genes and rows = samples.
+                      counts = NULL, #Raw Counts data, matrix with columns = genes and rows = samples.
                                      # not required, but can be provided.
+                      percent.samples = 75
                       ){
   #INPUTS
   #dds                The DESeq2 object for your data, *the output of DESeq()*
@@ -880,6 +1102,8 @@ NewRNAseq <- function(dds, #A DESeq object, *the output of DESeq()*
   #Ngenes             How many genes to use for the PCA
   #blind              Whether rlog estimation should be blinded to sample info. Run `?rlog` for more info
   #counts
+  #percent.samples    The percent of samples within each condition that must express the gene in order for
+                      # a gene to be included in the PCA
 
   ########## Create the Object ########################
   #Create the object with whatever inputs were given, a.k.a. creates objects@counts and any other level
@@ -911,42 +1135,17 @@ NewRNAseq <- function(dds, #A DESeq object, *the output of DESeq()*
                               c(names(data.frame(object@dds@colData@listData)),names(object@meta.data)),
                               fromLast=T
                               ))[1:length(object@dds@colData@listData)]])
+  
+  ##populate data
+  object@data <- assay(rlog(object@dds, blind = blind))
+  
   ########## Will run if run_PCA = TRUE ##################
-  ##Will populate: rlog, pca, var.genes
+  ##Will populate: pca, CVs, and var.genes
   if (run_PCA){
-    ##populate rlog
-    object@rlog <- assay(rlog(object@dds, blind = blind))
-    #Filter rlog to only the genes expressed in at least 75% of samples from test group (ONLY WORKS FOR ONE TEST GROUP)
-      test_meta <- strsplit(as.character(object@dds@design), split = "~")[[2]][1]
-      #Store this metadata as an easily accessible variable to speed up the next step.
-      classes <- meta(test_meta, object)
-      #For each gene, return TRUE if... the gene is expressed in >75% of samples from each condition used to build the dds
-      ##populate exp.filter
-      object@exp.filter <- sapply(1:dim(object@counts)[1], function(X)
-        #Ensures that the #of classifications = the number TRUEs in what the nested sapply produces
-        length(levels(as.factor(classes)))==sum(
-          #For each classification of the test variable, check for >= 75% expression
-          #This half sets a variable to each of the saparate classifications,
-          # and says to run the next lines on each
-          sapply(levels(as.factor(classes)), function(Y)
-            #This part of the function determine how many of the samples express the gene
-            (sum(object@counts[X, classes==Y]>0))
-            #This part compares the above to (the number of samples of the current classification*75%)
-             >= (sum(classes==Y)*.75)
-          )
-        )
-      )
-    data_for_prcomp <- as.data.frame(object@rlog)[object@exp.filter,]
-    #calculate CV by dividing mean by sd
-    ## populate CVs
-    object@CVs <- apply(X = object@rlog, MARGIN = 1, FUN = sd)/apply(X = object@rlog, MARGIN = 1, FUN = mean)
-    #Trim rlog data and RawCV_rlog by expression filter variable = object@exp.filter
-    #arrange by CV_rank, higher CVs first
-    data_for_prcomp<- data_for_prcomp[order(object@CVs[object@exp.filter], decreasing = T),]
-    ##populate var.genes
-    object@var.genes <- rownames(data_for_prcomp)[1:(min(Ngenes,dim(data_for_prcomp)[1]))]
-    ##populate pca : Run PCA on the top Ngenes CV genes that survive a 75% expression per condition filter
-    object@pca <- list(prcomp(t(data_for_prcomp[1:Ngenes,]), center = T, scale = T))
+    object <- PCAcalc(object = object,
+                      genes.use = pc.genes,
+                      Ngenes = Ngenes,
+                      percent.samples = percent.samples)
   }
   #OUTPUT: (This is how functions "work" in R.  The final line is what they return.)
   object
@@ -957,60 +1156,63 @@ PCAcalc <- function(object = DEFAULT,
                     genes.use = NULL,
                     Ngenes = 2500, #How many genes to use for running PCA, (and how many genes
                     # will be stored in @var.genes)
-                    blind = FALSE #Whether or not the rlog estimation should be blinded to sample info.
-                    # Run `?rlog` for more info
+                    percent.samples = 75
                     ){
   #INPUTS
-  #object         The RNAseq object to work on
-  #genes.use      The genes that should be used for calculating PCA.  If null, a per condition expression filter
-                  # will be applied, followed by a selection of Ngenes number of genes that have the highest
-                  # coefficient of variation (CV=mean/sd)
-  #run_PCA        FALSE by default.  Whether @rlog @var.genes and @pca[[1]] population are desired.
-  #Ngenes         How many genes to use for the PCA
-  #blind          Whether rlog estimation should be blinded to sample info. Run `?rlog` for more info
-
-  ##populate rlog
-  object@rlog <- assay(rlog(object@dds, blind = blind))
+  #object           The RNAseq object to work on
+  #genes.use        The genes that should be used for calculating PCA.  If null, a per condition expression filter
+                    # will be applied, followed by a selection of Ngenes number of genes that have the highest
+                    # coefficient of variation (CV=mean/sd)
+  #run_PCA          FALSE by default.  Whether @data @var.genes and @pca[[1]] population are desired.
+  #Ngenes           How many genes to use for the PCA
+  #percent.samples  The percent of samples within each condition that must express the gene in order for
+                    # a gene to be included in the PCA
+  
+  #Turn the percent.samples into a decimal named cutoff
+  cutoff <- percent.samples/100
+  
+  #grab the object if given an object name
+  if(typeof(object)=="character"){object <- eval(expr = parse(text = paste0(object)))}
   
   ######### IF no genes.use given, use the CVs and ExpFilter to pick genes ###########
   if(is.null(genes.use)){
-    #Filter rlog to only the genes expressed in at least 75% of samples from test group (ONLY WORKS FOR ONE TEST GROUP)
+    #Filter data to only the genes expressed in at least 75% of samples from test group (ONLY WORKS FOR ONE TEST GROUP)
     test_meta <- strsplit(as.character(object@dds@design), split = "~")[[2]][1]
     #Store this metadata as an easily accessible variable to speed up the next step.
     classes <- meta(test_meta, object)
-    #For each gene, return TRUE if... the gene is expressed in >75% of samples from each condition used to build the dds
+    #For each gene, return TRUE if... the gene is expressed in >cutoff% of samples from each condition used to build the dds
     ##populate exp.filter
     object@exp.filter <- sapply(1:dim(object@counts)[1], function(X)
       #Ensures that the #of classifications = the number TRUEs in what the nested sapply produces
       length(levels(as.factor(classes)))==sum(
-        #For each classification of the test variable, check for >= 75% expression
+        #For each classification of the test variable, check for >= cutoff% expression accross samples
         #This half sets a variable to each of the saparate classifications,
         # and says to run the next lines on each
         sapply(levels(as.factor(classes)), function(Y)
           #This part of the function determine how many of the samples express the gene
           (sum(object@counts[X, classes==Y]>0))
-          #This part compares the above to (the number of samples of the current classification*75%)
-          >= (sum(classes==Y)*.75)
+          #This part compares the above to (the number of samples of the current classification*cutoff%)
+          >= (sum(classes==Y)*cutoff)
         )
       )
     )
-    data_for_prcomp <- as.data.frame(object@rlog)[object@exp.filter,]
+    data_for_prcomp <- as.data.frame(object@data)[object@exp.filter,]
     #calculate CV by dividing mean by sd
     ## populate CVs
-    object@CVs <- apply(X = object@rlog, MARGIN = 1, FUN = sd)/apply(X = object@rlog, MARGIN = 1, FUN = mean)
+    object@CVs <- apply(X = object@data, MARGIN = 1, FUN = sd)/apply(X = object@data, MARGIN = 1, FUN = mean)
     #Trim rlog data and RawCV_rlog by expression filter variable = object@exp.filter
     #arrange by CV_rank, higher CVs first
     data_for_prcomp<- data_for_prcomp[order(object@CVs[object@exp.filter], decreasing = T),]
     ##populate var.genes
     object@var.genes <- rownames(data_for_prcomp)[1:(min(Ngenes,dim(data_for_prcomp)[1]))]
-    ##populate pca : Run PCA on the top Ngenes CV genes that survive a 75% expression per condition filter
+    ##populate pca : Run PCA on the top Ngenes CV genes that survive the cutoff% expression per condition filter
     object@pca <- list(prcomp(t(data_for_prcomp[1:Ngenes,]), center = T, scale = T))
   }
   ######### IF genes.use given, use them  ###########
   if(!(is.null(genes.use))){
     #Filter rlog to only the genes in genes.use
-    data_for_prcomp <- as.data.frame(object@rlog)[genes.use,]
-    ##populate pca : Run PCA on the top Ngenes CV genes that survive a 75% expression per condition filter
+    data_for_prcomp <- as.data.frame(object@data)[genes.use,]
+    ##populate pca : Run PCA on the top given genes.  DOES NOT USE THE Ngenes or percent.samples inputs!
     object@pca <- list(prcomp(t(data_for_prcomp), center = T, scale = T))
   }
   object
