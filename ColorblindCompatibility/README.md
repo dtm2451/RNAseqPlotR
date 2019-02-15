@@ -3,10 +3,10 @@
 I am a deuteranope myself (meaning I have a mostly red, but also some green, color vision deficiency.)  So I chose colors that I knew I would be able to tell apart!  I also built in some other methods that make the functions especially colorblindness friendly:
 
 1. The default color palette is built to work for the most common forms of colorblindness.
-2. Once the # of colors being used gets too high for the color platte to compensate (8 colors), letters are added by default to try and help.
-3. Utilization of shapes, instead of colors, is a built in functionality as well, though this one must be set manually (because computationally, combining lettering & shapes does not work well.)
-4. I added a **`Simulate()`** function that allows for generation of any my packages plots using a color.palet modified to simulate any of the major types of color blindness.
-5. Below, I also describe how to alter your colors for any other package in a way that you can simulate their look to a colorbling individual.
+2. Once the # of colors being used gets too high for the color panel to compensate (8 colors), letters are added by default to try and help.
+3. Utilization of shapes, instead of colors/letters, is a built in functionality as well, though this one must be set manually (because combining lettering & shapes does not work well visually, or computationally with ggplot.)
+4. I added a **`Simulate()`** function that allows for generation of any my package's plots using a color.panel modified to simulate any of the major types of color blindness.
+5. Below, I also describe how to alter your colors for any other package in a way that you can simulate their look to a colorblind individual.
 
 ## 4. To simulate looking at any plot generated with this package as if you were colorblind yourself:
 
