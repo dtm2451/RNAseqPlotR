@@ -56,10 +56,10 @@ These make manipulating Seurat data, and using my plotting functons, easier.
 
 **`rankedBarcodes()`**: Spits out a CellRanger-websummary-like plot of #UMI vs #cells.
 
-## Color adjustment functions (note: use these on a color.panel, not on a generated plot)
+## Color adjustment functions
 
-**`Darken()`**: Darkens a color or color.panel by a given amount.
+**`Darken()`**: Darkens a color or color.panel by a given amount. (note: use these on a color.panel, not on a generated plot)
 
-**`Lighten()`**: Lightens a color or color.panel by a given amount.
+**`Lighten()`**: Lightens a color or color.panel by a given amount. (note: use these on a color.panel, not on a generated plot)
 
 **`Simulate()`**: Generates any of the plot-types included in this package with colors adjusted to simulate any of the major forms of colorblindness.
