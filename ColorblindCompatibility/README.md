@@ -43,4 +43,4 @@ tritan.colors <- tritan(colors)
 
 then just plug those versions of your colors into whatever function you would like!
 
-NOTE: there are varying degrees of colorblindness, but my Simulate() function (and my above code for the deutan(), protan(), and tritan() functions) will simulate for the most severe cases.
+#### NOTE: there are varying degrees of colorblindness, but my Simulate() function (and my above code for the deutan(), protan(), and tritan() functions) will simulate for the most severe cases.
