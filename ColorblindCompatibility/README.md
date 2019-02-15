@@ -24,7 +24,7 @@ Simulate(type = "deutan", plot.function=DBDimPlot, var = "age", do.letter=F)
 
 The Simulate() function's inputs are:
 
-- `type` = "deutan", "protan", "tritan" = the type of colorblindness that you want to simulate.  Deutanopia is the most common, and involves primarily reg=d color deficiency.  Protanopia involves primarily green color deficiency.  Tritanopia involves primarily blue color deficiency.
+- `type` = "deutan", "protan", "tritan" = the type of colorblindness that you want to simulate.  Deutanopia is the most common, and involves primarily red color deficiency, and generally also a bit of green.  Protanopia involves primarily green color deficiency, and generally also a bit of red.  Tritanopia involves primarily blue color deficiency.
 - `plot.function` = the function you want to use.  R may try to add (), but delete that if it does.
 - `...` = any and all inputs that go into the plotting function you want to use.
 
