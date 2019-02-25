@@ -1,6 +1,8 @@
 # RNAseqPlotR
 
-This repository is being migrated due to a major upgrade: the code is jumping from Rscript to R-package!  I have renamed the package to DittoSeq and have transferred all content over to the [DittoSeq](https://github.com/dtm2451/DittoSeq) repository.  This repository only serves historical purposes now, and so will likely be deleted sometime in the near future.
+## This repository has been migrated due to a major upgrade: the code jumped from Rscript to R-package!  I have renamed the package DittoSeq and have transferred all content over to the [DittoSeq](https://github.com/dtm2451/DittoSeq) repository.  The RNAseqPlotR repository only serves historical purposes now, and so will likely be deleted sometime in the near future.
+
+---
 
 **A set of functions built for analysis and color blind friendly visualization of single cell and bulk RNA-sequencing data**
 
